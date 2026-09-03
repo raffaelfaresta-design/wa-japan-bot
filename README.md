@@ -4,18 +4,22 @@ Bot Telegram yang mengirim pelajaran bahasa Jepang secara otomatis setiap hari m
 
 ## Fitur
 
-- 📚 30 hari pelajaran bahasa Jepang (hiragana, katakana, grammar, kosakata)
-- 📝 Quiz harian dengan jawaban otomatis
-- 🤖 Bot Telegram dengan perintah /belajar, /quiz, /jawaban, /progres
+- 📚 30 hari pelajaran bahasa Jepang (hiragana, katakana, grammar, kosakata) — otomatis dimuat saat bot start, tanpa setup manual
+- 🤖 AI pengajar via Groq (jawab pertanyaan apa pun dalam Bahasa Indonesia)
+- 📝 Quiz harian dengan koreksi jawaban otomatis (balas A/B/C/D)
+- ❓ Mode tanya-jawab (`/tanya`)
+- 📚 Broadcast kosakata dasar otomatis tiap 1 jam
+- 🤖 Bot Telegram dengan perintah /belajar, /quiz, /jawaban, /tanya, /progres
 - ⏰ Jadwal kirim fleksibel
 
 ## Quick Start
 
 ```bash
 npm install
-node database/init.js
 node index.js
 ```
+
+Materi 30 hari otomatis dimuat dari `content/lessons.json` saat pertama jalan — tidak perlu `node database/init.js` lagi.
 
 ## Konfigurasi
 
@@ -23,7 +27,20 @@ Salin `.env.example` ke `.env`:
 
 ```env
 TELEGRAM_BOT_TOKEN=your_telegram_bot_token
+
+# Opsional tapi disarankan: agar bot bisa jawab pertanyaan APAPUN
+GROQ_API_KEY=your_groq_api_key
+GROQ_MODEL=llama-3.3-70b-versatile
+
+BROADCAST_INTERVAL_MINUTES=60
 ```
+
+### Dapatkan Groq API Key (gratis)
+
+1. Buka [console.groq.com](https://console.groq.com), daftar / login
+2. Buka **API Keys** → **Create API Key**, salin key-nya
+3. Masukkan ke `.env` sebagai `GROQ_API_KEY`
+4. Tanpa key, bot tetap jalan dalam mode lokal (jawab hanya dari materi 30 hari)
 
 ### Dapatkan Telegram Bot Token
 
@@ -58,6 +75,9 @@ git push -u origin main
    - **Instance Type:** Free
 5. Tambahkan Environment Variables:
    - `TELEGRAM_BOT_TOKEN` - token bot Telegram
+   - `GROQ_API_KEY` - API key Groq (agar bisa jawab apa pun)
+   - `GROQ_MODEL` - opsional, default `llama-3.3-70b-versatile`
+   - `BROADCAST_INTERVAL_MINUTES` - opsional, default `60`
 6. Klik **Create Web Service**
 
 ## Struktur Project
@@ -87,8 +107,10 @@ wa-japan-bot/
 |----------|--------|
 | `/start` | Mulai & info umum |
 | `/belajar` | Lihat pelajaran hari ini |
-| `/quiz` | Lihat quiz hari ini |
+| `/quiz` | Lihat quiz hari ini (balas A/B/C/D untuk dikoreksi) |
 | `/jawaban` | Lihat jawaban quiz |
+| `/tanya <pertanyaan>` | Tanya AI pengajar apa saja |
+| `/selesai` | Keluar dari mode tanya |
 | `/progres` | Lihat progress belajar |
 | `/help` | Bantuan |
 

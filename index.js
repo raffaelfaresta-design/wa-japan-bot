@@ -1,5 +1,6 @@
 require('dotenv').config();
 const { startTelegram } = require('./services/telegram');
+const { isAIEnabled, getModel } = require('./services/ai');
 
 const botToken = process.env.TELEGRAM_BOT_TOKEN;
 
@@ -13,4 +14,9 @@ startTelegram(botToken);
 
 console.log('🚀 Telegram Japan AI Bot aktif!');
 console.log('📖 /belajar, /quiz (balas A-D), /tanya <pertanyaan>, /progres');
+if (isAIEnabled()) {
+  console.log(`🤖 Groq AI AKTIF (model: ${getModel()})`);
+} else {
+  console.log('🤖 Groq AI MATI (mode lokal). Isi GROQ_API_KEY di .env untuk jawaban fleksibel.');
+}
 console.log(`📚 Broadcast kosakata tiap ${process.env.BROADCAST_INTERVAL_MINUTES || 60} menit.`);

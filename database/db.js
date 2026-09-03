@@ -20,6 +20,29 @@ function loadDB() {
   if (!Array.isArray(data.lessons)) data.lessons = [];
   if (!Array.isArray(data.userProgress)) data.userProgress = [];
   if (!Array.isArray(data.userStates)) data.userStates = [];
+  // auto-init: isi pelajaran otomatis dari content/lessons.json
+  // agar /belajar langsung jalan tanpa `node database/init.js`
+  if (data.lessons.length === 0) {
+    try {
+      const lessonsRaw = JSON.parse(
+        fs.readFileSync(path.join(__dirname, '../content/lessons.json'), 'utf8')
+      );
+      data.lessons = lessonsRaw.map(l => ({
+        day_number: l.day,
+        title: l.title,
+        category: l.category,
+        content: l.content,
+        quiz_question: l.quiz_question,
+        quiz_options: JSON.stringify(l.quiz_options),
+        quiz_answer: l.quiz_answer,
+        explanation: l.explanation
+      }));
+      saveDB(data);
+      console.log(`[DB] Auto-init: ${data.lessons.length} pelajaran dimuat dari content/lessons.json`);
+    } catch (e) {
+      console.error('[DB] Auto-init gagal:', e.message);
+    }
+  }
   return data;
 }
 

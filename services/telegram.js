@@ -1,5 +1,6 @@
 const { Telegraf } = require('telegraf');
 const db = require('../database/db');
+const { isAIEnabled, getModel, askGroq } = require('./ai');
 
 let bot = null;
 let broadcastTimer = null;
@@ -83,7 +84,15 @@ function searchLessons(query, limit = 3) {
   return scored.slice(0, limit).map(r => r.lesson);
 }
 
-function answerQuestion(query) {
+function buildLessonContext(hits) {
+  if (!hits || hits.length === 0) return '';
+  return hits.slice(0, 2).map(h => {
+    const snippet = h.content.length > 1200 ? h.content.slice(0, 1200) + '...' : h.content;
+    return `[Hari ${h.day_number} - ${h.title}]\n${snippet}\nPenjelasan: ${h.explanation}`;
+  }).join('\n\n');
+}
+
+function answerQuestionLocal(query) {
   const q = (query || '').trim();
   const ql = q.toLowerCase();
 
@@ -117,6 +126,22 @@ function answerQuestion(query) {
   }
   text += `\n\nMau latihan? Kirim /quiz lalu balas A/B/C/D.`;
   return truncate(text);
+}
+
+// Jawab pertanyaan apa pun: pakai Groq AI bila API key tersedia,
+// fallback ke jawaban lokal berbasis materi bila AI mati/gagal.
+async function answerQuestion(query) {
+  const q = (query || '').trim();
+  if (!q) {
+    return '❓ Tulis pertanyaanmu setelah /tanya ya.\nContoh: /tanya apa arti konnichiwa?';
+  }
+  if (isAIEnabled()) {
+    const hits = searchLessons(q, 2);
+    const aiAnswer = await askGroq(q, buildLessonContext(hits));
+    if (aiAnswer) return truncate('🤖 ' + aiAnswer);
+    // AI gagal -> lanjut ke fallback lokal di bawah
+  }
+  return answerQuestionLocal(q);
 }
 
 // ---- cek jawaban quiz otomatis ----
@@ -244,12 +269,16 @@ function startTelegram(botToken) {
   bot.start((ctx) => {
     ensureSubscriber(ctx);
     db.setUserState(ctx.chat.id.toString(), { mode: 'normal' });
+    const aiLine = isAIEnabled()
+      ? `🤖 Mode AI AKTIF (${getModel()}) — tanya apa pun, saya jawab!`
+      : '🤖 Mode lokal — tambah GROQ_API_KEY agar saya bisa jawab pertanyaan apa pun.';
     ctx.reply(
       '🎌 Selamat datang di AI Pengajar Bahasa Jepang!\n\n' +
+      aiLine + '\n\n' +
       'Saya bisa:\n' +
       '1. 📖 /belajar - pelajaran hari ini\n' +
       '2. 📝 /quiz - quiz hari ini (balas A/B/C/D, saya koreksi otomatis)\n' +
-      '3. ❓ /tanya <pertanyaan> - tanya kosakata / grammar apa saja\n' +
+      '3. ❓ /tanya <pertanyaan> - tanya kosakata / grammar / apa saja\n' +
       '4. 📚 Broadcast kosakata otomatis tiap 1 jam\n\n' +
       'Contoh:\n/tanya apa arti konnichiwa?\n/quiz'
     );
@@ -262,7 +291,7 @@ function startTelegram(botToken) {
     if (lesson) {
       await ctx.reply(buildLessonMessage(lesson, safeOptions(lesson)));
     } else {
-      await ctx.reply('📭 Pelajaran hari ini belum tersedia. Jalankan: node database/init.js');
+      await ctx.reply('📭 Pelajaran hari ini belum tersedia. Coba lagi sebentar ya.');
     }
   });
 
@@ -311,7 +340,7 @@ function startTelegram(botToken) {
     const full = ctx.message.text || '';
     const question = full.replace(/^\/tanya(@\w+)?\s*/, '').trim();
     if (question) {
-      await ctx.reply(answerQuestion(question));
+      await ctx.reply(await answerQuestion(question));
     } else {
       db.setUserState(chatId, { mode: 'qa' });
       await ctx.reply(
@@ -361,13 +390,13 @@ function startTelegram(botToken) {
     const chatId = ctx.chat.id.toString();
     const state = db.getUserState(chatId);
     if (state && state.mode === 'qa') {
-      await ctx.reply(answerQuestion(text));
+      await ctx.reply(await answerQuestion(text));
       return;
     }
 
     // 3. di luar mode: kalau terlihat seperti pertanyaan, jawab sekalian
     if (text.length > 3 && /[?]/.test(text) || /^(apa|bagaimana|gimana|kenapa|kapan|dimana|arti|artinya|cara|jelaskan|tolong|bedanya)\b/i.test(text)) {
-      await ctx.reply(answerQuestion(text) + '\n\n(Ketik /tanya untuk mode tanya terus-menerus, /selesai untuk keluar.)');
+      await ctx.reply(await answerQuestion(text) + '\n\n(Ketik /tanya untuk mode tanya terus-menerus, /selesai untuk keluar.)');
       return;
     }
     // selain itu diamkan agar tidak spam; beri hint singkat
