@@ -1,11 +1,14 @@
 const { Telegraf } = require('telegraf');
 const db = require('../database/db');
-const { isAIEnabled, getModel, askGroq } = require('./ai');
+const { isAIEnabled, getModel, getVisionModel, askGroq, describeImage } = require('./ai');
 
 let bot = null;
 let broadcastTimer = null;
 
 const MAX_TG_LEN = 4000;
+const MAX_TG_CAPTION = 950; // batas caption foto Telegram 1024, sisakan margin
+const MAX_PHOTO_BYTES = 15 * 1024 * 1024; // limit Groq 20MB, jaga-jaga
+let broadcastPhotoTurn = false;
 const STOPWORDS = new Set(['apa', 'yang', 'itu', 'ini', 'dan', 'atau', 'bagaimana', 'gimana', 'cara', 'tolong', 'jelaskan', 'jelasin', 'artinya', 'arti', 'adalah', 'dalam', 'bahasa', 'jepang', 'nya', 'saya', 'kamu', 'apa?', 'ya', 'kah', 'dong', 'sih', 'deh', 'the', 'a', 'an', 'of', 'to', 'in']);
 
 function truncate(text, max = MAX_TG_LEN) {
@@ -217,10 +220,29 @@ function buildVocabMessage(v) {
 
 async function broadcastVocab(botInstance) {
   try {
-    const vocabs = extractVocabularies();
-    if (vocabs.length === 0) return;
     const subs = db.getActiveSubscribers();
     if (subs.length === 0) return;
+
+    // selang-seling: giliran foto (dari pool foto user) vs teks (dari materi)
+    const photos = db.getPhotoVocab();
+    broadcastPhotoTurn = !broadcastPhotoTurn;
+    if (broadcastPhotoTurn && photos.length > 0) {
+      const pick = photos[Math.floor(Math.random() * photos.length)];
+      const caption = truncate(`📚 KOSAKATA DARI FOTO 🇯🇵\n\n${pick.caption}\n\n💬 Kirim foto tulisan Jepang apa pun, saya bacakan! /foto`, MAX_TG_CAPTION);
+      let sent = 0;
+      for (const s of subs) {
+        try {
+          await botInstance.telegram.sendPhoto(s.chat_id, pick.file_id, { caption });
+          sent++;
+          await new Promise(r => setTimeout(r, 300));
+        } catch (e) { /* abaikan user yg block / file kedaluwarsa */ }
+      }
+      console.log(`[BROADCAST] Foto kosakata terkirim ke ${sent} subscriber.`);
+      return;
+    }
+
+    const vocabs = extractVocabularies();
+    if (vocabs.length === 0) return;
     const pick = vocabs[Math.floor(Math.random() * vocabs.length)];
     const msg = buildVocabMessage(pick);
     for (const s of subs) {
@@ -279,7 +301,8 @@ function startTelegram(botToken) {
       '1. 📖 /belajar - pelajaran hari ini\n' +
       '2. 📝 /quiz - quiz hari ini (balas A/B/C/D, saya koreksi otomatis)\n' +
       '3. ❓ /tanya <pertanyaan> - tanya kosakata / grammar / apa saja\n' +
-      '4. 📚 Broadcast kosakata otomatis tiap 1 jam\n\n' +
+      '4. 📸 Kirim FOTO tulisan Jepang - saya bacakan + ekstrak kosakatanya\n' +
+      '5. 📚 Broadcast kosakata otomatis tiap 1 jam (teks + foto)\n\n' +
       'Contoh:\n/tanya apa arti konnichiwa?\n/quiz'
     );
   });
@@ -366,10 +389,11 @@ function startTelegram(botToken) {
       '/quiz - quiz hari ini (balas A/B/C/D)\n' +
       '/jawaban - kunci jawaban hari ini\n' +
       '/tanya <pertanyaan> - tanya AI pengajar\n' +
+      '/foto - cara kirim foto tulisan Jepang untuk dibacakan\n' +
       '/progres - progress & skor quiz\n' +
       '/selesai - keluar mode tanya\n' +
       '/help - bantuan ini\n\n' +
-      'Tips: setelah /quiz, cukup balas "B" saja, saya koreksi otomatis. Bot juga kirim kosakata baru tiap 1 jam. 🎌'
+      'Tips: setelah /quiz, cukup balas "B" saja, saya koreksi otomatis. Kirim foto + caption pertanyaan juga bisa! Bot kirim kosakata baru tiap 1 jam. 🎌'
     );
   });
 
@@ -401,6 +425,56 @@ function startTelegram(botToken) {
     }
     // selain itu diamkan agar tidak spam; beri hint singkat
     await ctx.reply('👋 Kirim /belajar untuk materi, /quiz untuk latihan, atau /tanya <pertanyaan> untuk bertanya. /help untuk daftar lengkap.');
+  });
+
+  bot.command('foto', (ctx) => {
+    ctx.reply(
+      '📸 KIRIM FOTO TULISAN JEPANG\n\n' +
+      'Caranya: kirim foto apa pun (menu, rambu, buku, tulisan tangan kana/kanji) langsung ke chat ini.\n' +
+      `Saya bacakan pakai AI vision (${isAIEnabled() ? getVisionModel() : 'butuh GROQ_API_KEY'}) + ekstrak kosakata dasarnya (Jepang, romaji, arti).\n\n` +
+      'Foto yang kamu kirim otomatis masuk pool dan ikut di-broadcast tiap 1 jam ke semua subscriber. 📚\n\n' +
+      'Tips: tambah caption pertanyaan, mis. kirim foto + caption "apa artinya ini?"'
+    );
+  });
+
+  // handler FOTO: baca tulisan Jepang via Groq vision -> jelaskan + simpan untuk broadcast
+  bot.on('photo', async (ctx) => {
+    ensureSubscriber(ctx);
+    if (!isAIEnabled()) {
+      await ctx.reply('📸 Saya terima fotonya, tapi fitur baca foto butuh GROQ_API_KEY. Minta admin mengisi API key dulu ya.');
+      return;
+    }
+    const photos = ctx.message.photo || [];
+    if (photos.length === 0) return;
+    const best = photos[photos.length - 1]; // resolusi terbesar
+    const question = (ctx.message.caption || '').trim();
+
+    await ctx.reply('📸 Foto diterima, saya baca dulu ya... ⏳');
+    try {
+      const link = await ctx.telegram.getFileLink(best.file_id);
+      const resp = await fetch(link.href || link.toString());
+      if (!resp.ok) throw new Error(`unduh foto gagal (${resp.status})`);
+      const buf = Buffer.from(await resp.arrayBuffer());
+      if (buf.length > MAX_PHOTO_BYTES) {
+        await ctx.reply('⚠️ Fotonya terlalu besar untuk diproses (>15MB). Coba kirim foto yang lebih kecil.');
+        return;
+      }
+      const mime = 'image/jpeg';
+      const result = await describeImage({ base64: buf.toString('base64'), mimeType: mime, question });
+      if (!result) {
+        await ctx.reply('😔 Maaf, saya gagal membaca foto ini. Coba lagi dengan foto yang lebih jelas.');
+        return;
+      }
+      const total = db.addPhotoVocab({
+        file_id: best.file_id,
+        caption: result.length > MAX_TG_CAPTION ? result.slice(0, MAX_TG_CAPTION - 3) + '...' : result,
+        from: ctx.chat.id.toString()
+      });
+      await ctx.reply(truncate(`📸 HASIL BACA FOTO\n\n${result}\n\n✅ Tersimpan! Foto ini ikut antri broadcast kosakata per jam (total ${total} foto di pool).`));
+    } catch (e) {
+      console.error('[FOTO] gagal:', e.message);
+      await ctx.reply('😔 Maaf, terjadi kesalahan saat membaca foto. Coba lagi ya.');
+    }
   });
 
   bot.launch();

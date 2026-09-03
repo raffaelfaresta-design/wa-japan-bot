@@ -9,7 +9,8 @@ function loadDB() {
       subscribers: [],
       lessons: [],
       userProgress: [],
-      userStates: []
+      userStates: [],
+      photoVocab: []
     };
     saveDB(initialData);
     return initialData;
@@ -20,6 +21,7 @@ function loadDB() {
   if (!Array.isArray(data.lessons)) data.lessons = [];
   if (!Array.isArray(data.userProgress)) data.userProgress = [];
   if (!Array.isArray(data.userStates)) data.userStates = [];
+  if (!Array.isArray(data.photoVocab)) data.photoVocab = [];
   // auto-init: isi pelajaran otomatis dari content/lessons.json
   // agar /belajar langsung jalan tanpa `node database/init.js`
   if (data.lessons.length === 0) {
@@ -159,6 +161,22 @@ function setUserState(chatId, patch) {
   return db.userStates.find(s => s.chat_id === chatId);
 }
 
+// ---- kosakata dari foto (untuk broadcast) ----
+const MAX_PHOTO_VOCAB = 20;
+
+function getPhotoVocab() {
+  return loadDB().photoVocab;
+}
+
+// entry: { file_id, caption, from, createdAt }
+function addPhotoVocab(entry) {
+  const db = loadDB();
+  db.photoVocab.push({ ...entry, createdAt: new Date().toISOString() });
+  while (db.photoVocab.length > MAX_PHOTO_VOCAB) db.photoVocab.shift();
+  saveDB(db);
+  return db.photoVocab.length;
+}
+
 module.exports = {
   initLessons,
   getLessons,
@@ -174,5 +192,7 @@ module.exports = {
   getAllUserProgress,
   getUserQuizStats,
   getUserState,
-  setUserState
+  setUserState,
+  getPhotoVocab,
+  addPhotoVocab
 };

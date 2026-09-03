@@ -6,6 +6,8 @@ Bot Telegram yang mengirim pelajaran bahasa Jepang secara otomatis setiap hari m
 
 - 📚 30 hari pelajaran bahasa Jepang (hiragana, katakana, grammar, kosakata) — otomatis dimuat saat bot start, tanpa setup manual
 - 🤖 AI pengajar via Groq (jawab pertanyaan apa pun dalam Bahasa Indonesia)
+- 📸 Baca foto tulisan Jepang via Groq vision (`qwen/qwen3.6-27b`) + ekstrak kosakata dasar
+- 📚 Broadcast kosakata dasar otomatis tiap 1 jam (selang-seling teks & foto)
 - 📝 Quiz harian dengan koreksi jawaban otomatis (balas A/B/C/D)
 - ❓ Mode tanya-jawab (`/tanya`)
 - 📚 Broadcast kosakata dasar otomatis tiap 1 jam
@@ -31,6 +33,7 @@ TELEGRAM_BOT_TOKEN=your_telegram_bot_token
 # Opsional tapi disarankan: agar bot bisa jawab pertanyaan APAPUN
 GROQ_API_KEY=your_groq_api_key
 GROQ_MODEL=llama-3.3-70b-versatile
+GROQ_VISION_MODEL=qwen/qwen3.6-27b
 
 BROADCAST_INTERVAL_MINUTES=60
 ```
@@ -110,6 +113,7 @@ wa-japan-bot/
 | `/quiz` | Lihat quiz hari ini (balas A/B/C/D untuk dikoreksi) |
 | `/jawaban` | Lihat jawaban quiz |
 | `/tanya <pertanyaan>` | Tanya AI pengajar apa saja |
+| `/foto` | Cara kirim foto tulisan Jepang untuk dibacakan (atau langsung kirim foto!) |
 | `/selesai` | Keluar dari mode tanya |
 | `/progres` | Lihat progress belajar |
 | `/help` | Bantuan |
