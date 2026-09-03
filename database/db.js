@@ -8,12 +8,19 @@ function loadDB() {
     const initialData = {
       subscribers: [],
       lessons: [],
-      userProgress: []
+      userProgress: [],
+      userStates: []
     };
     saveDB(initialData);
     return initialData;
   }
-  return JSON.parse(fs.readFileSync(DB_PATH, 'utf8'));
+  const data = JSON.parse(fs.readFileSync(DB_PATH, 'utf8'));
+  // migrasi field lama agar tidak crash
+  if (!Array.isArray(data.subscribers)) data.subscribers = [];
+  if (!Array.isArray(data.lessons)) data.lessons = [];
+  if (!Array.isArray(data.userProgress)) data.userProgress = [];
+  if (!Array.isArray(data.userStates)) data.userStates = [];
+  return data;
 }
 
 function saveDB(data) {
@@ -57,10 +64,10 @@ function findSubscriber(chatId) {
 
 function addSubscriber(chatId, name = '') {
   const db = loadDB();
-  const existing = findSubscriber(chatId);
+  const existing = db.subscribers.find(s => s.chat_id === chatId);
   if (existing) {
     existing.is_active = 1;
-    existing.name = name;
+    if (name) existing.name = name;
   } else {
     db.subscribers.push({
       chat_id: chatId,
@@ -74,7 +81,7 @@ function addSubscriber(chatId, name = '') {
 
 function removeSubscriber(chatId) {
   const db = loadDB();
-  const sub = findSubscriber(chatId);
+  const sub = db.subscribers.find(s => s.chat_id === chatId);
   if (sub) sub.is_active = 0;
   saveDB(db);
 }
@@ -103,6 +110,32 @@ function getAllUserProgress() {
   return loadDB().userProgress;
 }
 
+function getUserQuizStats(chatId) {
+  const db = loadDB();
+  const rows = db.userProgress.filter(p => p.chat_id === chatId);
+  const answered = rows.length;
+  const correct = rows.filter(p => p.quiz_score === 1).length;
+  return { answered, correct };
+}
+
+// ---- user state (mode tanya / quiz) ----
+function getUserState(chatId) {
+  const db = loadDB();
+  return db.userStates.find(s => s.chat_id === chatId) || { chat_id: chatId, mode: 'normal' };
+}
+
+function setUserState(chatId, patch) {
+  const db = loadDB();
+  const idx = db.userStates.findIndex(s => s.chat_id === chatId);
+  if (idx >= 0) {
+    db.userStates[idx] = { ...db.userStates[idx], ...patch, chat_id: chatId };
+  } else {
+    db.userStates.push({ chat_id: chatId, mode: 'normal', ...patch });
+  }
+  saveDB(db);
+  return db.userStates.find(s => s.chat_id === chatId);
+}
+
 module.exports = {
   initLessons,
   getLessons,
@@ -115,5 +148,8 @@ module.exports = {
   getSubscriberCount,
   getUserProgress,
   upsertUserProgress,
-  getAllUserProgress
+  getAllUserProgress,
+  getUserQuizStats,
+  getUserState,
+  setUserState
 };

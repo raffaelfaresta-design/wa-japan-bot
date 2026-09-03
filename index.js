@@ -11,5 +11,6 @@ if (!botToken) {
 
 startTelegram(botToken);
 
-console.log('🚀 Telegram Japan Bot aktif!');
-console.log('📖 Gunakan /belajar, /quiz, /jawaban, /progres');
+console.log('🚀 Telegram Japan AI Bot aktif!');
+console.log('📖 /belajar, /quiz (balas A-D), /tanya <pertanyaan>, /progres');
+console.log(`📚 Broadcast kosakata tiap ${process.env.BROADCAST_INTERVAL_MINUTES || 60} menit.`);
