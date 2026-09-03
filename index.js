@@ -1,20 +1,15 @@
 require('dotenv').config();
-const { connectWhatsApp } = require('./services/whatsapp');
-const { startScheduler, getSubscriberCount } = require('./services/scheduler');
 const { startTelegram } = require('./services/telegram');
 
-async function main() {
-  console.log('🚀 Memulai WhatsApp Japan Bot...');
-  console.log(`⏰ Jadwal pelajaran: Pukul ${process.env.LESSON_TIME || '20'}:00 WIB`);
-  console.log(`📊 Mode: ${process.env.MODE || 'manual'}`);
+const botToken = process.env.TELEGRAM_BOT_TOKEN;
 
-  await connectWhatsApp();
-  startTelegram(process.env.TELEGRAM_BOT_TOKEN);
-
-  setTimeout(() => {
-    startScheduler();
-    console.log(`📊 Total subscriber WA: ${getSubscriberCount()}`);
-  }, 5000);
+if (!botToken) {
+  console.error('❌ TELEGRAM_BOT_TOKEN belum diisi di .env');
+  console.log('Dapatkan token dari @BotFather di Telegram, lalu tambahkan ke .env');
+  process.exit(1);
 }
 
-main().catch(console.error);
+startTelegram(botToken);
+
+console.log('🚀 Telegram Japan Bot aktif!');
+console.log('📖 Gunakan /belajar, /quiz, /jawaban, /progres');

@@ -1,14 +1,12 @@
-# WhatsApp & Telegram Japan Bot 🤖🇯🇵
+# Telegram Japan Bot 🤖🇯🇵
 
-Bot WhatsApp & Telegram yang mengirim pelajaran bahasa Jepang secara otomatis setiap hari menggunakan Bahasa Indonesia sebagai medium.
+Bot Telegram yang mengirim pelajaran bahasa Jepang secara otomatis setiap hari menggunakan Bahasa Indonesia sebagai medium.
 
 ## Fitur
 
 - 📚 30 hari pelajaran bahasa Jepang (hiragana, katakana, grammar, kosakata)
 - 📝 Quiz harian dengan jawaban otomatis
-- 📢 Broadcast otomatis ke semua subscriber WhatsApp
 - 🤖 Bot Telegram dengan perintah /belajar, /quiz, /jawaban, /progres
-- 👥 Auto-add subscriber saat bergabung ke grup WhatsApp
 - ⏰ Jadwal kirim fleksibel
 
 ## Quick Start
@@ -24,11 +22,6 @@ node index.js
 Salin `.env.example` ke `.env`:
 
 ```env
-# WhatsApp
-LESSON_TIME=20
-MODE=manual
-
-# Telegram (opsional)
 TELEGRAM_BOT_TOKEN=your_telegram_bot_token
 ```
 
@@ -55,7 +48,7 @@ git push -u origin main
 ### 2. Setup di Render
 
 1. Buka [render.com](https://render.com), buat akun
-2. Klik **New +** → **Background Worker**
+2. Klik **New +** → **Web Service**
 3. Hubungkan repo GitHub
 4. Configure:
    - **Name:** wa-japan-bot
@@ -65,18 +58,13 @@ git push -u origin main
    - **Instance Type:** Free
 5. Tambahkan Environment Variables:
    - `TELEGRAM_BOT_TOKEN` - token bot Telegram
-   - `LESSON_TIME` - jam kirim pelajaran (default: 20)
-6. Klik **Create Background Worker**
-
-### 3. WhatsApp Session
-
-Pertama kali jalankan, scan QR code yang muncul di terminal Render logs. Session tersimpan di folder `session/`.
+6. Klik **Create Web Service**
 
 ## Struktur Project
 
 ```
 wa-japan-bot/
-├── index.js                  # Entry point (WA + Telegram)
+├── index.js                  # Entry point
 ├── .env                      # Konfigurasi
 ├── .env.example              # Template env
 ├── Procfile                  # Render config
@@ -88,13 +76,7 @@ wa-japan-bot/
 │   ├── init.js               # Inisialisasi database
 │   └── bot.json              # Database file (auto-created)
 ├── services/
-│   ├── whatsapp.js           # Koneksi WhatsApp (Baileys)
-│   ├── telegram.js           # Bot Telegram (Telegraf)
-│   ├── scheduler.js          # Scheduler & broadcast
-│   └── userManager.js        # Manajemen subscriber
-├── session/                  # Session WhatsApp (auto-created)
-├── add-subscriber.js         # Tambah subscriber manual
-├── send-now.js               # Kirim pelajaran sekarang
+│   └── telegram.js           # Bot Telegram (Telegraf)
 ├── status.js                 # Cek status bot
 └── README.md
 ```
@@ -109,22 +91,6 @@ wa-japan-bot/
 | `/jawaban` | Lihat jawaban quiz |
 | `/progres` | Lihat progress belajar |
 | `/help` | Bantuan |
-
-## Perintah Manual
-
-```bash
-# Inisialisasi database
-node database/init.js
-
-# Tambah subscriber manual
-node add-subscriber.js <chat_id> [nama]
-
-# Kirim pelajaran sekarang
-node send-now.js
-
-# Cek status
-node status.js
-```
 
 ## Kurikulum
 
@@ -143,6 +109,5 @@ node status.js
 ## Syarat
 
 - Node.js >= 18
-- Akun WhatsApp (untuk QR Code login pertama kali)
 - Bot Telegram (dari @BotFather)
 - Akses internet

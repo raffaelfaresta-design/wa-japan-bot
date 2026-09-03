@@ -1,19 +1,17 @@
 require('dotenv').config();
-const { connectWhatsApp } = require('./services/whatsapp');
-const { sendDailyLesson, getCurrentDayNumber } = require('./services/scheduler');
+const db = require('./database/db');
 
-async function main() {
-  console.log('📤 Mengirim pelajaran hari ini...');
-  const dayNumber = getCurrentDayNumber();
-  console.log(`📅 Hari ke-${dayNumber}`);
+const dayNumber = Math.floor((new Date() - new Date(new Date().getFullYear(), 0, 0)) / (1000 * 60 * 60 * 24)) % 30 + 1;
+const lesson = db.getLessonByDay(dayNumber);
 
-  await connectWhatsApp();
-
-  setTimeout(async () => {
-    await sendDailyLesson();
-    console.log('✅ Selesai!');
-    process.exit(0);
-  }, 5000);
+if (lesson) {
+  const options = JSON.parse(lesson.quiz_options);
+  console.log(`📤 Pelajaran Hari ${dayNumber}: ${lesson.title}`);
+  console.log(`📖 ${lesson.content.substring(0, 200)}...`);
+  console.log(`📝 Quiz: ${lesson.quiz_question}`);
+  options.forEach((opt) => console.log(`   ${opt}`));
+  console.log(`✅ Jawaban: ${lesson.quiz_answer}`);
+  console.log(`💡 ${lesson.explanation}`);
+} else {
+  console.log('📭 Pelajaran hari ini belum tersedia.');
 }
-
-main().catch(console.error);

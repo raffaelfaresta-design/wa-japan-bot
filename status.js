@@ -1,12 +1,12 @@
 const db = require('./database/db');
 
-console.log('📊 STATUS BOT');
+const dayNumber = Math.floor((new Date() - new Date(new Date().getFullYear(), 0, 0)) / (1000 * 60 * 60 * 24)) % 30 + 1;
+
+console.log('📊 STATUS BOT TELEGRAM');
 console.log('━━━━━━━━━━━━━━━━━━━━');
 console.log(`📚 Total pelajaran: ${db.getLessons().length}`);
 console.log(`👥 Total subscriber aktif: ${db.getSubscriberCount()}`);
-console.log(`📅 Jadwal: Pukul ${process.env.LESSON_TIME || '20'}:00 WIB`);
-console.log(`🤖 Mode: ${process.env.MODE || 'manual'}`);
-console.log(`⏰ Hari ini: Pelajaran ke-${db.getLessons().length > 0 ? new Date().getDate() % 30 + 1 : '?'}`);
+console.log(`⏰ Hari ini: Pelajaran ke-${dayNumber}`);
 console.log('━━━━━━━━━━━━━━━━━━━━');
 
 const subs = db.getSubscribers();
