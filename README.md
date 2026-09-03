@@ -113,6 +113,7 @@ wa-japan-bot/
 | `/quiz` | Lihat quiz hari ini (balas A/B/C/D untuk dikoreksi) |
 | `/jawaban` | Lihat jawaban quiz |
 | `/tanya <pertanyaan>` | Tanya AI pengajar apa saja |
+| `/ai` | Cek status AI & versi bot |
 | `/foto` | Cara kirim foto tulisan Jepang untuk dibacakan (atau langsung kirim foto!) |
 | `/selesai` | Keluar dari mode tanya |
 | `/progres` | Lihat progress belajar |
@@ -137,3 +138,12 @@ wa-japan-bot/
 - Node.js >= 18
 - Bot Telegram (dari @BotFather)
 - Akses internet
+
+## Troubleshooting
+
+| Gejala | Penyebab & solusi |
+|--------|-------------------|
+| `/tanya` jawabannya "tidak menemukan" / kaku | Bot jalan MODE LOKAL. Kirim `/ai` untuk cek. Isi `GROQ_API_KEY` di `.env` (lokal) dan Environment Variables (Render), lalu restart |
+| Jawaban quiz tidak dikoreksi | Pastikan membalas setelah `/quiz` atau `/belajar`. Format bebas: `B`, `b.`, `jawaban C`, `aku pilih A` |
+| Bot tidak merespons sama sekali | Cek Render Logs. Pastikan `TELEGRAM_BOT_TOKEN` benar dan service berstatus Live (bukan Sleep) |
+| Versi lama masih jalan | Kirim `/ai` — lihat `Versi bot`. Jika bukan versi terbaru, redeploy manual di Render (Manual Deploy → Deploy latest commit) |

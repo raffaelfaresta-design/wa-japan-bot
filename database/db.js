@@ -126,7 +126,7 @@ function upsertUserProgress(chatId, dayNumber, status, score) {
   if (idx >= 0) {
     db.userProgress[idx] = { chat_id: chatId, day_number: dayNumber, status, quiz_score: score };
   } else {
-    db.userProgress.push({ chat_id, day_number: dayNumber, status, quiz_score: score });
+    db.userProgress.push({ chat_id: chatId, day_number: dayNumber, status, quiz_score: score });
   }
   saveDB(db);
 }

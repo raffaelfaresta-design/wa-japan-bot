@@ -1,6 +1,9 @@
 const { Telegraf } = require('telegraf');
+const fs = require('fs');
+const path = require('path');
 const db = require('../database/db');
 const { isAIEnabled, getModel, getVisionModel, askGroq, describeImage } = require('./ai');
+const BOT_VERSION = require('../package.json').version;
 
 let bot = null;
 let broadcastTimer = null;
@@ -61,6 +64,86 @@ function tokenize(text) {
     .filter(s => s.length > 1 && !STOPWORDS.has(s));
 }
 
+// ---- kamus lokal (fallback saat AI mati) ----
+let KAMUS = null;
+function loadKamus() {
+  if (KAMUS) return KAMUS;
+  try {
+    KAMUS = JSON.parse(fs.readFileSync(path.join(__dirname, '../content/kamus.json'), 'utf8'));
+  } catch (e) {
+    KAMUS = [];
+  }
+  return KAMUS;
+}
+
+// "apa arti anakku?" / "bahasa jepangnya terima kasih" / "kucing artinya apa" -> entri kamus
+function lookupKamus(query) {
+  let key = (query || '').toLowerCase().replace(/[?!.。、！？「」"'—:;()]/g, ' ').replace(/\s+/g, ' ').trim();
+  if (!key) return null;
+  key = key
+    .replace(/^(tolong\s+)?(jelaskan|jelasin|artikan|terjemahkan)\s+/, '')
+    .replace(/^(apa|apakah)\s+(arti|artinya|itu|ini|maksud|yang dimaksud)\s+(dari\s+)?/, '')
+    .replace(/^(arti|artinya|itu|ini)\s+(dari\s+)?/, '')
+    .replace(/^apa\s+/, '')
+    .replace(/^(cara\s+baca|bacaan|tulisan)\s+/, '')
+    .replace(/^(bahasa\s+jepangnya|jepangnya)\s+/, '')
+    .replace(/\s+(artinya|arti)\s+(apa|dong|ya)?$/, '')
+    .replace(/\s+(dalam\s+)?bahasa\s+jepang$/, '')
+    .replace(/\s+(apa|dong|ya|sih)$/, '')
+    .trim();
+  if (!key) return null;
+  const kamus = loadKamus();
+  // 1. cocok persis alias
+  for (const e of kamus) {
+    if ((e.id || []).some(a => a.toLowerCase() === key)) return e;
+  }
+  // 2. kunci terkandung utuh sebagai kata
+  for (const e of kamus) {
+    for (const a of (e.id || [])) {
+      const alias = a.toLowerCase();
+      if (key === alias || key.startsWith(alias + ' ') || key.endsWith(' ' + alias) || key.includes(' ' + alias + ' ')) return e;
+    }
+  }
+  return null;
+}
+
+function formatKamusAnswer(entry, original) {
+  let text = `💡 KAMUS\n\n"${original}" dalam bahasa Jepang:\n\n${entry.jp}`;
+  if (entry.romaji) text += ` (${entry.romaji})`;
+  text += `\n= ${entry.arti}`;
+  if (entry.note) text += `\n\n📌 ${entry.note}`;
+  text += `\n\nMau latihan? Kirim /quiz lalu balas A/B/C/D. Tanya lain? /tanya saja.`;
+  return truncate(text);
+}
+
+// ---- deteksi jawaban quiz yang toleran ----
+// Terima: "B", "b.", "B)", "jawaban C", "jawabannya a", "aku pilih D", bahkan teks opsinya.
+function extractQuizLetter(text, lesson) {
+  const t = (text || '').trim();
+  if (!t || t.length > 80) return null;
+
+  const cleaned = t.toUpperCase().replace(/[\s.!?)"'\]}>]+$/g, '').replace(/^[\s([{<"']+/g, '');
+  if (/^[A-D]$/.test(cleaned)) return cleaned;
+
+  const m = t.match(/jawab\w*\s*(nya|an)?\s*[:\-]?\s*([A-D])/i)
+    || t.match(/pilih(an)?\s*[:\-]?\s*([A-D])/i)
+    || t.match(/\bno\.?\s*([A-D])\b/i);
+  if (m) {
+    const letter = ((m[2] || m[1]) || '').toUpperCase();
+    if (/^[A-D]$/.test(letter)) return letter;
+  }
+
+  // cocok dengan teks opsi, mis. user balas "おはようございます" -> huruf opsinya
+  if (lesson) {
+    const norm = t.toLowerCase();
+    for (const opt of safeOptions(lesson)) {
+      const om = String(opt).match(/^\s*([A-D])\s*[).\-:]\s*(.+)$/i);
+      if (om && om[2].trim().toLowerCase() === norm) return om[1].toUpperCase();
+    }
+  }
+  return null;
+}
+
 // ---- AI pengajar sederhana berbasis lessons.json ----
 function searchLessons(query, limit = 3) {
   const lessons = db.getLessons();
@@ -114,9 +197,15 @@ function answerQuestionLocal(query) {
     return '🤖 Saya bot AI pengajar bahasa Jepang (berbasis 30 hari materi). Saya bisa:\n1. Menjawab pertanyaan kosakata & grammar\n2. Mengoreksi jawaban quiz kamu\n3. Mengirim kosakata baru setiap 1 jam\n\nCoba: /belajar atau /tanya apa itu partikel wa?';
   }
 
+  // 1. kamus kata sehari-hari (anakku, terima kasih, kucing, ...)
+  const kamusHit = lookupKamus(q);
+  if (kamusHit) return formatKamusAnswer(kamusHit, q);
+
   const hits = searchLessons(q, 3);
   if (hits.length === 0) {
-    return `🤔 Hmm, saya belum menemukan jawaban pasti untuk: "${q}"\n\nCoba tanya dengan kata kunci lain, misalnya:\n• /tanya sapaan pagi\n• /tanya hiragana shi\n• /tanya angka dalam bahasa jepang\n\nAtau buka /belajar untuk materi hari ini.`;
+    return `🤔 Hmm, saya belum menemukan jawaban pasti untuk: "${q}"\n\n` +
+      `Kemungkinan saya jalan dalam MODE LOKAL (tanpa AI). Cek dengan /ai — kalau AI mati, minta admin mengisi GROQ_API_KEY.\n\n` +
+      `Sementara itu coba kata lain, misalnya:\n• /tanya apa arti anakku?\n• /tanya sapaan pagi\n• /tanya hiragana shi\n\nAtau buka /belajar untuk materi hari ini.`;
   }
 
   const top = hits[0];
@@ -147,9 +236,15 @@ async function answerQuestion(query) {
   return answerQuestionLocal(q);
 }
 
-// ---- cek jawaban quiz otomatis ----
+// ---- cek jawaban quiz: benar/salah deterministik, penjelasan berjiwa AI ----
+function buildQuizFeedbackLocal({ lesson, userLetter, isCorrect, correct, stats }) {
+  if (isCorrect) {
+    return `✅ BENAR! Hebat! 🎉\n\nJawaban kamu ${userLetter} tepat.\n\n📖 ${lesson.explanation}\n\n📊 Skor kamu: ${stats.correct} benar dari ${stats.answered} quiz.\nLanjut /belajar untuk materi berikutnya!`;
+  }
+  return `❌ Kurang tepat. Kamu jawab ${userLetter}, jawaban benar: ${correct}.\n\n📖 ${lesson.explanation}\n\n📊 Skor kamu: ${stats.correct} benar dari ${stats.answered} quiz.\nSemangat, coba /quiz lagi besok ya! 💪`;
+}
+
 async function handleQuizAnswer(ctx, rawLetter) {
-  const letter = (rawLetter || '').toUpperCase();
   const chatId = ctx.chat.id.toString();
   const dayNumber = getCurrentDayNumber();
   const lesson = db.getLessonByDay(dayNumber);
@@ -159,21 +254,36 @@ async function handleQuizAnswer(ctx, rawLetter) {
     return;
   }
 
+  // normalisasi di sini juga agar tahan terhadap input mentah apa pun
+  const letter = extractQuizLetter(rawLetter, lesson) || (rawLetter || '').trim().toUpperCase();
+  if (!/^[A-D]$/.test(letter)) {
+    await ctx.reply('❓ Saya tidak menangkap jawabanmu. Balas dengan A, B, C, atau D ya.');
+    return;
+  }
+
+  const options = safeOptions(lesson);
   const correct = (lesson.quiz_answer || '').toUpperCase();
   const isCorrect = letter === correct;
   db.upsertUserProgress(chatId, dayNumber, isCorrect ? 'correct' : 'wrong', isCorrect ? 1 : 0);
   db.setUserState(chatId, { mode: 'normal', lastQuizDay: dayNumber });
 
   const stats = db.getUserQuizStats(chatId);
-  if (isCorrect) {
-    await ctx.reply(truncate(
-      `✅ BENAR! Hebat! 🎉\n\nJawaban kamu ${letter} tepat.\n\n📖 ${lesson.explanation}\n\n📊 Skor kamu: ${stats.correct} benar dari ${stats.answered} quiz.\nLanjut /belajar untuk materi berikutnya!`
-    ));
-  } else {
-    await ctx.reply(truncate(
-      `❌ Kurang tepat. Kamu jawab ${letter}, jawaban benar: ${correct}.\n\n📖 ${lesson.explanation}\n\n📊 Skor kamu: ${stats.correct} benar dari ${stats.answered} quiz.\nSemangat, coba /quiz lagi besok ya! 💪`
-    ));
+  const local = buildQuizFeedbackLocal({ lesson, userLetter: letter, isCorrect, correct, stats });
+
+  // AI meresuki quiz: bila aktif, biarkan AI menyusun pesan koreksinya
+  if (isAIEnabled()) {
+    const quizCtx = `Quiz Hari ${lesson.day_number}: ${lesson.quiz_question}\nPilihan:\n${options.join('\n')}\nJawaban benar: ${correct}\nJawaban murid: ${letter} (${isCorrect ? 'BENAR' : 'SALAH'})\nPenjelasan kunci: ${lesson.explanation}\nSkor murid sejauh ini: ${stats.correct} benar dari ${stats.answered} quiz.`;
+    const aiMsg = await askGroq(
+      'Koreksi jawaban quiz murid di atas. Sebutkan benar/salah dengan jelas, jelaskan singkat kenapa, beri semangat 1 kalimat, dan tutup dengan skornya. Maksimal 5 kalimat, Bahasa Indonesia.',
+      quizCtx,
+      { maxTokens: 300, temperature: 0.8 }
+    );
+    if (aiMsg) {
+      await ctx.reply(truncate((isCorrect ? '✅ ' : '❌ ') + aiMsg));
+      return;
+    }
   }
+  await ctx.reply(truncate(local));
 }
 
 // ---- ekstrak kosakata untuk broadcast per jam ----
@@ -312,6 +422,8 @@ function startTelegram(botToken) {
     const dayNumber = getCurrentDayNumber();
     const lesson = db.getLessonByDay(dayNumber);
     if (lesson) {
+      // pesan belajar memuat quiz -> masuk mode quiz agar jawaban longgar ikut terkoreksi
+      db.setUserState(ctx.chat.id.toString(), { mode: 'quiz', lastQuizDay: dayNumber });
       await ctx.reply(buildLessonMessage(lesson, safeOptions(lesson)));
     } else {
       await ctx.reply('📭 Pelajaran hari ini belum tersedia. Coba lagi sebentar ya.');
@@ -382,6 +494,24 @@ function startTelegram(botToken) {
     await ctx.reply('✅ Mode direset. Kirim /help untuk daftar perintah.');
   });
 
+  // diagnostik: pastikan AI aktif & bot versi terbaru
+  bot.command('ai', async (ctx) => {
+    const lessons = db.getLessons().length;
+    const photos = db.getPhotoVocab().length;
+    await ctx.reply(
+      `🤖 STATUS AI\n\n` +
+      `Mode: ${isAIEnabled() ? 'AKTIF ✅ (Groq)' : 'LOKAL ⚠️ (GROQ_API_KEY belum diisi)'}\n` +
+      `Model teks: ${getModel()}\n` +
+      `Model vision: ${getVisionModel()}\n` +
+      `Materi: ${lessons} pelajaran\n` +
+      `Pool foto: ${photos} foto\n` +
+      `Versi bot: v${BOT_VERSION}\n\n` +
+      (isAIEnabled()
+        ? 'AI meresuki semuanya: /tanya, chat bebas, koreksi quiz, dan baca foto. Silakan uji saya! 💪'
+        : 'Agar saya bisa jawab apa pun + koreksi berjiwa AI + baca foto, minta admin mengisi GROQ_API_KEY lalu restart bot.')
+    );
+  });
+
   bot.command(['help', 'bantuan'], (ctx) => {
     ctx.reply(
       '📖 Bantuan\n\n' +
@@ -389,6 +519,7 @@ function startTelegram(botToken) {
       '/quiz - quiz hari ini (balas A/B/C/D)\n' +
       '/jawaban - kunci jawaban hari ini\n' +
       '/tanya <pertanyaan> - tanya AI pengajar\n' +
+      '/ai - cek status AI & versi bot\n' +
       '/foto - cara kirim foto tulisan Jepang untuk dibacakan\n' +
       '/progres - progress & skor quiz\n' +
       '/selesai - keluar mode tanya\n' +
@@ -397,33 +528,47 @@ function startTelegram(botToken) {
     );
   });
 
-  // handler teks: 1) jawaban quiz A-D, 2) mode tanya, 3) abaikan
+  // handler teks: 1) jawaban quiz, 2) mode tanya, 3) pertanyaan/AI, 4) hint
   bot.on('text', async (ctx) => {
     ensureSubscriber(ctx);
     const text = (ctx.message.text || '').trim();
     if (!text) return;
     if (text.startsWith('/')) return; // command sudah ditangani di atas
 
-    // 1. jawaban quiz satu huruf
-    if (/^[a-dA-D]$/.test(text)) {
-      await handleQuizAnswer(ctx, text);
+    const chatId = ctx.chat.id.toString();
+    const state = db.getUserState(chatId);
+    const lesson = db.getLessonByDay(getCurrentDayNumber());
+
+    // 1. jawaban quiz (toleran: "B", "b.", "jawaban C", "aku pilih A", bahkan teks opsinya)
+    let letter = extractQuizLetter(text, lesson);
+    if (!letter && state && state.mode === 'quiz') {
+      const loose = text.match(/\b([A-D])\b/);
+      if (loose) letter = loose[1].toUpperCase();
+    }
+    if (letter) {
+      await handleQuizAnswer(ctx, letter);
       return;
     }
 
     // 2. mode tanya aktif -> anggap pertanyaan
-    const chatId = ctx.chat.id.toString();
-    const state = db.getUserState(chatId);
     if (state && state.mode === 'qa') {
       await ctx.reply(await answerQuestion(text));
       return;
     }
 
-    // 3. di luar mode: kalau terlihat seperti pertanyaan, jawab sekalian
-    if (text.length > 3 && /[?]/.test(text) || /^(apa|bagaimana|gimana|kenapa|kapan|dimana|arti|artinya|cara|jelaskan|tolong|bedanya)\b/i.test(text)) {
+    // 3. terlihat seperti pertanyaan -> jawab langsung
+    const looksQuestion = (text.length > 3 && /[?]/.test(text)) ||
+      /^(apa|bagaimana|gimana|kenapa|kapan|dimana|arti|artinya|cara|jelaskan|tolong|bedanya)\b/i.test(text);
+    if (looksQuestion) {
       await ctx.reply(await answerQuestion(text) + '\n\n(Ketik /tanya untuk mode tanya terus-menerus, /selesai untuk keluar.)');
       return;
     }
-    // selain itu diamkan agar tidak spam; beri hint singkat
+
+    // 4. AI aktif -> AI menjawab teks apa pun; mode lokal -> hint singkat
+    if (isAIEnabled() && text.length > 1) {
+      await ctx.reply(await answerQuestion(text));
+      return;
+    }
     await ctx.reply('👋 Kirim /belajar untuk materi, /quiz untuk latihan, atau /tanya <pertanyaan> untuk bertanya. /help untuk daftar lengkap.');
   });
 
@@ -492,4 +637,4 @@ function getBot() {
   return bot;
 }
 
-module.exports = { startTelegram, getBot, answerQuestion, searchLessons, extractVocabularies, getCurrentDayNumber };
+module.exports = { startTelegram, getBot, answerQuestion, answerQuestionLocal, lookupKamus, extractQuizLetter, handleQuizAnswer, searchLessons, extractVocabularies, getCurrentDayNumber };

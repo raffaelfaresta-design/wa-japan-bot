@@ -25,7 +25,7 @@ Aturan:
 - Jika pertanyaan di luar bahasa Jepang, tetap jawab dengan baik lalu kaitkan kembali ke belajar bahasa Jepang bila relevan.
 - Jika diberi KONTEKS MATERI, prioritaskan isinya agar konsisten dengan kurikulum, tapi boleh menambah penjelasan sendiri.`;
 
-async function askGroq(question, lessonContext = '') {
+async function askGroq(question, lessonContext = '', opts = {}) {
   const apiKey = (process.env.GROQ_API_KEY || '').trim();
   if (!apiKey) return null;
 
@@ -51,8 +51,8 @@ async function askGroq(question, lessonContext = '') {
           { role: 'system', content: SYSTEM_PROMPT },
           { role: 'user', content: userContent }
         ],
-        temperature: 0.7,
-        max_tokens: 900
+        temperature: opts.temperature !== undefined ? opts.temperature : 0.7,
+        max_tokens: opts.maxTokens || 900
       })
     });
 
