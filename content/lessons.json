@@ -1,0 +1,302 @@
+[
+  {
+    "day": 1,
+    "title": "Perkenalan & Sapaan Pertama",
+    "category": "sapaan",
+    "content": "🎌 HARI 1: Perkenalan & Sapaan Pertama\n\nKosakata:\n• こんにちは (Konnichiwa) = Selamat siang\n• おはようございます (Ohayou gozaimasu) = Selamat pagi\n• こんばんは (Konbanwa) = Selamat malam\n• さようなら (Sayounara) = Selamat tinggal\n• ありがとう (Arigatou) = Terima kasih\n• すみません (Sumimasen) = Maaf / Permisi\n• はい (Hai) = Ya\n• いいえ (Iie) = Tidak\n• 私は〜です (Watashi wa〜desu) = Saya adalah〜\n• 名前は何ですか (Nama wa nan desu ka) = Apa nama Anda?\n\nKalimat Penting:\n「こんにちは、はじめまして。」\n(Selamat siang, senang bertemu dengan Anda.)\n\n「ありがとうございます！」\n(Terima kasih banyak!)\n\nTips Belajar:\nUcapkan sapaan-sapaan ini setiap pagi dan sore saat berlatih. Ingat, 'こんにちは' hanya dipakai untuk waktu siang (sekitar pukul 11.00-17.00).",
+    "quiz_question": "Pertanyaan 1: Apa ungkapan bahasa Jepang untuk 'Selamat pagi'?",
+    "quiz_options": ["A) こんにちは", "B) おはようございます", "C) こんばんは", "D) さようなら"],
+    "quiz_answer": "B",
+    "explanation": "Jawaban: B. おはようございます (Ohayou gozaimasu) adalah cara sopan untuk mengatakan 'Selamat pagi' dalam bahasa Jepang."
+  },
+  {
+    "day": 2,
+    "title": "Hiragana Dasar: あ・い・う・え・お",
+    "category": "hiragana",
+    "content": "🎌 HARI 2: Hiragana Dasar - Gojūon Pertama\n\n5 Hiragana Pertama:\nあ = a\nい = i\nう = u\nえ = e\nお = o\n\nCara Baca:\n• あ → seperti kata 'a' dalam 'apa'\n• い → seperti kata 'i' dalam 'ini'\n• う → seperti huruf 'u' dalam bahasa Indonesia\n• え → seperti kata 'e' dalam 'elektron'\n• お → seperti kata 'o' dalam 'orang'\n\nLatihan:\nTulis setiap huruf 5 kali sambil mengucapkan bunyinya.\n\nFungsi:\nHuruf-huruf ini adalah dasar dari semua hiragana. Semua suku kata dalam bahasa Jepang tersusun dari huruf-huruf dasar ini.",
+    "quiz_question": "Pertanyaan 2: Huruf hiragana mana yang melambangkan bunyi 'u'?",
+    "quiz_options": ["A) あ", "B) い", "C) う", "D) え"],
+    "quiz_answer": "C",
+    "explanation": "Jawaban: C. Huruf う melambangkan bunyi 'u'. Perhatikan bahwa bentuknya mirip dengan angka 4 dalam bahasa Jepang (よん/yon)."
+  },
+  {
+    "day": 3,
+    "title": "Hiragana: か・き・く・け・こ",
+    "category": "hiragana",
+    "content": "🎌 HARI 3: Hiragana Barisan 'Ka'\n\n5 Hiragana:\nか = ka\nき = ki\nく = ku\nけ = ke\nこ = ko\n\nPerhatikan Perbedaan:\n• か (ka) vs か - ingat garis di samping kanan\n• き (ki) - mirip dengan garis di huruf 'K'\n• く (ku) - bentuk mirip huruf 'ku' di Asia Timur\n• け (ke) - mirip dengan angka '5' terbalik\n• こ (ko) - mirip huruf 'ko' kecil\n\nContoh Kata:\n• かさ (kasa) = payung\n• きつね (kitsune) = rubah\n• くも (kumo) = awan\n• けしき (keshiki) = pemandangan\n• こえ (koe) = suara\n\nTips:\nSetiap hiragana memiliki suara 'o' di belakangnya (ka, ki, ku, ke, ko). Ingat polanya!",
+    "quiz_question": "Pertanyaan 3: Hiragana mana yang melambangkan bunyi 'ke'?",
+    "quiz_options": ["A) か", "B) き", "C) く", "D) け"],
+    "quiz_answer": "D",
+    "explanation": "Jawaban: D. け melambangkan bunyi 'ke'. Perhatikan bahwa け mirip dengan angka 5 jika dilihat dari bentuknya."
+  },
+  {
+    "day": 4,
+    "title": "Hiragana: さ・し・す・せ・そ",
+    "category": "hiragana",
+    "content": "🎌 HARI 4: Hiragana Barisan 'Sa'\n\n5 Hiragana:\nさ = sa\nし = shi\nす = su\nせ = se\nそ = so\n\nKunci Penting:\n• し = 'shi' (bukan 'si'). Ini adalah satu-satunya yang bunyinya berbeda dari ejaan!\n• す (su) = bunyi 'su' seperti dalam 'sumur'\n\nContoh Kata:\n• さくら (sakura) = bunga sakura\n• しんごう (shingou) = lampu lalu lintas\n• すし (sushi) = sushi\n• せいと (seito) = siswa\n• そら (sora) = langit\n\nLatihan Menulis:\nTulis setiap huruf 10 kali sambil menyebutkan bunyinya.",
+    "quiz_question": "Pertanyaan 4: Bagaimana cara membaca hiragana し?",
+    "quiz_options": ["A) si", "B) shi", "C) su", "D) se"],
+    "quiz_answer": "B",
+    "explanation": "Jawaban: B. し dibaca 'shi', bukan 'si'. Ini trik penting: dalam bahasa Jepang, 'shi' tidak memiliki huruf 'i' terpisah, jadi し = shi."
+  },
+  {
+    "day": 5,
+    "title": "Hiragana: た・ち・つ・て・と",
+    "category": "hiragana",
+    "content": "🎌 HARI 5: Hiragana Barisan 'Ta'\n\n5 Hiragana:\nた = ta\nち = chi\nつ = tsu\nて = te\nと = to\n\nPerhatikan:\n• ち = 'chi' (mirip 'chi' dalam 'cheetah')\n• つ = 'tsu' (perhatikan gandaan つ, ini berfungsi sebagai geminator)\n• つ (tsu) juga berarti 'penuh' saat digandakan\n\nContoh Kata:\n• たべる (taberu) = makan\n• ちず (chizu) = peta\n• つくえ (tsukue) = meja\n• てがみ (tegami) = surat\n• とけい (tokei) = jam\n\nTips:\nHuruf つ sangat penting karena mengubah pelafalan kata jika digandakan (tt, kk, ss, dll).",
+    "quiz_question": "Pertanyaan 5: Apa fungsi huruf つ yang digandakan (っ)?",
+    "quiz_options": ["A) Membuat suara lebih panjang", "B) Menggandakan konsonan setelahnya", "C) Mengubah vokal", "D) Tidak ada fungsi"],
+    "quiz_answer": "B",
+    "explanation": "Jawaban: B. つ yang digandakan menjadi っ (small tsu) berfungsi untuk menggandakan konsonan setelahnya. Contoh: かた (kata) vs かった (katta)."
+  },
+  {
+    "day": 6,
+    "title": "Hiragana: な・に・ぬ・ね・の",
+    "category": "hiragana",
+    "content": "🎌 HARI 6: Hiragana Barisan 'Na'\n\n5 Hiragana:\nな = na\nに = ni\nぬ = nu\nね = ne\nの = no\n\nMudah Diingat:\nSemua berakhiran 'n' + vokal. Polanya sangat konsisten!\n\nContoh Kata:\n• なに (nani) = apa\n• ねこ (neko) = kucing\n• の (no) = (partikel kepemilikan)\n• なつ (natsu) = musim panas\n• にほん (nihon) = Jepang\n\nPartikel の (no):\nIni partikel yang sangat penting! Digunakan untuk menunjukkan kepemilikan.\nContoh: 私の名前 (watashi no namae) = nama saya",
+    "quiz_question": "Pertanyaan 6: Apa arti hiragana の dalam kalimat?",
+    "quiz_options": ["A) Dan", "B) Kepemilikan (dari)", "C) Tempat", "D) Waktu"],
+    "quiz_answer": "B",
+    "explanation": "Jawaban: B. の (no) adalah partikel kepemilikan, setara dengan 'dari' atau 'milik' dalam bahasa Indonesia. Contoh: わたしの (watashi no) = milik saya."
+  },
+  {
+    "day": 7,
+    "title": "Hiragana: ま・み・め・も & や・ゆ・よ",
+    "category": "hiragana",
+    "content": "🎌 HARI 7: Hiragana Barisan 'Ma' & Kelompok 'Ya'\n\nBarisan Ma:\nま = ma\nみ = mi\nむ = mu\nめ = me\nも = mo\n\nKelompok Ya (Yo-bar):\nや = ya\nゆ = yu\nよ = yo\n\nPerhatikan:\n• む = 'mu' (mirip 'm' di awal kata)\n• め = 'me' (mirip 'me' dalam 'membaca')\n\nContoh Kata:\n• まど (mado) = jendela\n• みず (mizu) = air\n• もんだい (mondai) = masalah\n• やま (yama) = gunung\n• ゆび (yubi) = jari\n• よる (yoru) = malam\n\nReview Minggu Ini:\nPastikan Anda bisa membaca semua hiragana yang sudah dipelajari (Hari 1-6). Coba baca tanpa melihat referensi!",
+    "quiz_question": "Pertanyaan 7: Hiragana mana yang melambangkan bunyi 'mi'?",
+    "quiz_options": ["A) ま", "B) み", "C) む", "D) め"],
+    "quiz_answer": "B",
+    "explanation": "Jawaban: B. み dibaca 'mi'. Ingat bahwa む = 'mu' dan め = 'me'. Perhatikan perbedaan bentuknya."
+  },
+  {
+    "day": 8,
+    "title": "Hiragana: ら・り・る・れ・ろ & わ・を・ん",
+    "category": "hiragana",
+    "content": "🎌 HARI 8: Hiragana Barisan 'Ra' & Huruf Sisa\n\nBarisan Ra:\nら = ra\nり = ri\nる = ru\nれ = re\nろ = ro\n\nHuruf Sisa:\nわ = wa\nを = wo (secara teknis dilafalkan 'o')\nん = n\n\nPerhatikan:\n• を (wo) = partikel objek, dilafalkan 'o'\n• ん = satu-satunya huruf hiragana yang dimulai dari konsonan 'n'\n\nContoh Kata:\n• らめん (ramen) = mie ramen\n• りんご (ringo) = apel\n• るす (rusu) = tidak ada (absen)\n• わたし (watashi) = saya\n• を (wo) = partikel objek\n• この (kono) = ini\n\nSemua 46 Huruf Hiragana Selesai!",
+    "quiz_question": "Pertanyaan 8: Huruf hiragana mana yang digunakan sebagai partikel objek?",
+    "quiz_options": ["A) は", "B) が", "C) を", "D) に"],
+    "quiz_answer": "C",
+    "explanation": "Jawaban: C. を (wo) adalah partikel objek, menandai objek langsung dari kata kerja. Contoh: 本を読む (hon o yomu) = membaca buku."
+  },
+  {
+    "day": 9,
+    "title": "Katakana Dasar: ア・イ・ウ・エ・オ",
+    "category": "katakana",
+    "content": "🎌 HARI 9: Katakana Dasar - Barisan Pertama\n\n5 Katakana Pertama:\nア = a\nイ = i\nウ = u\nエ = e\nオ = o\n\nApa itu Katakana?\nKatakana digunakan untuk:\n1. Kata pinjaman asing (gairaigo)\n2. Nama asing\n3. Penekanan\n4. Suara hewan\n5. Nama ilmiah/ilmiah\n\nContoh Kata Katakana:\n• コーヒー (koohii) = kopi\n• テレビ (terebi) = televisi\n• パソコン (pasokon) = komputer\n• エアコン (ea-kon) = AC\n\nPerbedaan Hiragana vs Katakana:\nHiragana = kata asli Jepang\nKatakana = kata pinjaman asing\n\nLatihan:\nTulis setiap katakana 5 kali sambil menyebutkan bunyinya!",
+    "quiz_question": "Pertanyaan 9: Katakana biasanya digunakan untuk apa?",
+    "quiz_options": ["A) Kata asli Jepang", "B) Kata pinjaman asing", "C) Partikel tata bahasa", "D) Huruf kapital"],
+    "quiz_answer": "B",
+    "explanation": "Jawaban: B. Katakana terutama digunakan untuk kata pinjaman asing (gairaigo). Contoh: コーヒー (koohii) dari bahasa Inggris 'coffee'."
+  },
+  {
+    "day": 10,
+    "title": "Katakana: カ・キ・ク・ケ・コ & サ・シ・ス・セ・ソ",
+    "category": "katakana",
+    "content": "🎌 HARI 10: Katakana Barisan 'Ka' & 'Sa'\n\nBarisan Ka:\nカ = ka\nキ = ki\nク = ku\nケ = ke\nコ = ko\n\nBarisan Sa:\nサ = sa\nシ = shi\nス = su\nセ = se\nソ = so\n\nPerhatikan Perbedaannya dengan Hiragana:\nKatakana terlihat lebih 'kotak' dan tegas dibanding hiragana yang lebih melengkung.\n\nContoh Kata:\n• カレー (karee) = kari\n• キリン (kiriin) = jerapah\n• コーヒー (koohii) = kopi\n• サッカー (sakkaa) = sepak bola\n• シーツ (shiitsu) = sarung bantal\n\nTips:\nBandingkan bentuk hiragana dan katakana yang sama. Mereka saling terkait tetapi bentuknya berbeda.",
+    "quiz_question": "Pertanyaan 10: Manakah yang merupakan katakana?",
+    "quiz_options": ["A) か", "B) カ", "C) が", "D) き"],
+    "quiz_answer": "B",
+    "explanation": "Jawaban: B. カ adalah katakana. Huruf katakana biasanya terlihat lebih tegas dan 'kotak' dibandingkan hiragana yang lebih melengkung."
+  },
+  {
+    "day": 11,
+    "title": "Tata Bahasa: Kalimat Sederhana (S+O+V)",
+    "category": "grammar",
+    "content": "🎌 HARI 11: Struktur Kalimat Bahasa Jepang\n\nUrutan Kata: S + O + V (Subjek + Objek + Kata Kerja)\n\nBahasa Indonesia: Saya makan nasi\nBahasa Jepang: 私はご飯を食べます (Watashi wa gohan o tabemasu)\n\nPenjelasan:\n• 私は (watashi wa) = Saya (subjek)\n• ご飯を (gohan o) = Nasi (objek) ← menggunakan partikel を\n• 食べます (tabemasu) = Makan (kata kerja, bentuk sopan)\n\nPartikel Penting:\n• は (wa) = penanda topik/subjek\n• を (o) = penanda objek\n• が (ga) = penanda subjek (detail)\n\nContoh Lain:\n• 先生は本を読みます (sensei wa hon o yomimasu) = Guru membaca buku\n• 子供はゲームを遊びます (kodomo wa geemu o asobimasu) = Anak bermain game\n\nLatihan:\nCoba ubah subjek dan objeknya!",
+    "quiz_question": "Pertanyaan 11: Dalam kalimat 私はご飯を食べます, apa fungsi は (wa)?",
+    "quiz_options": ["A) Objek", "B) Kata kerja", "C) Penanda subjek/topik", "D) Partikel tempat"],
+    "quiz_answer": "C",
+    "explanation": "Jawaban: C. は (wa) adalah partikel topik yang menandakan subjek atau topik pembicaraan. 私は = 'saya' (topik pembicaraan)."
+  },
+  {
+    "day": 12,
+    "title": "Tata Bahasa: Kata Kerja Bentuk 'Masu'",
+    "category": "grammar",
+    "content": "🎌 HARI 12: Kata Kerja Bentuk Masu (bentuk sopan)\n\nKonjugasi Dasar:\nBentuk dictionary → Bentuk masu\n\n食べる (taberu) → 食べます (tabemasu) = makan\n飲む (nomu) → 飲みます (nomimasu) = minum\n書く (kaku) → 書きます (kakimasu) = menulis\n読む (yomu) → 読みます (yomimasu) = membaca\n聞く (kiku) → 闻きます (kikimasu) = mendengar\n\nAturan:\n1. Kata kerja berakhiran 'ru' → ganti 'ru' dengan 'mimasu'/'bimasu'/'nimasu'\n2. Kata kerja berakhiran 'su' → ganti 'su' dengan 'imasu' (shimasu)\n3. Kata kerja berakhiran 'ku' → きます (kimasu)\n4. Kata kerja berakhiran 'gu' → ぎます (gimasu)\n5. Kata kerja berakhiran 'mu' → みます (mimasu)\n6. Kata kerja berakhiran 'nu' → みます (mimasu)\n7. Kata kerja berakhiran 'bu' → びます (bimasu)\n\nContoh:\n• 泳ぐ (oyogu) → 泳ぎます (oyogimasu) = berenang\n• 話す (hanasu) → 話します (hanasimasu) = berbicara\n\nLatihan:\nCoba konjugasikan: 見る (miru) = melihat",
+    "quiz_question": "Pertanyaan 12: Berapa bentuk masu dari kata kerja 飲む (nomu)?",
+    "quiz_options": ["A) 飲みます (nomimasu)", "B) 飲ます (nomasu)", "C) 飲みて (nomite)", "D) 飲う (nomi)"],
+    "quiz_answer": "A",
+    "explanation": "Jawaban: A. 飲む → 飲みます (nomimasu). Perhatikan bahwa 'mu' diubah menjadi 'mimasu'."
+  },
+  {
+    "day": 13,
+    "title": "Kosakata: Angka 1-10",
+    "category": "vocabulary",
+    "content": "🎌 HARI 13: Angka 1-10 dalam Bahasa Jepang\n\nAngka Dasar:\n1 = いち (ichi) / ひとつ (hitotsu)\n2 = に (ni) / ふたつ (futatsu)\n3 = さん (san) / みっつ (mittsu)\n4 = し (shi) / よっつ (yottsu)\n5 = ご (go) / いつつ (itsutsu)\n6 = ろく (roku) / むっつ (muttsu)\n7 = しち (shichi) / ななつ (nanatsu)\n8 = はち (hachi) / やっつ (yattsu)\n9 = きゅう (kyuu) / ここのつ (kokonotsu)\n10 = じゅう (juu) / とお (too)\n\nCatatan Penting:\n• し (shi) dan よっつ (yottsu) = angka 4 (berbeda dengan は partikel)\n• しち (shichi) dan ななつ (nanatsu) = angka 7 (bisa pakai keduanya)\n• 九 (kyuu) = 9\n\nPenggunaan:\n• 3時に来てください (sanji ni kite kudasai) = Silakan datang jam 3\n• 100円 (hyakuen) = 100 yen\n• 5冊 (gokan) = 5 buku",
+    "quiz_question": "Pertanyaan 13: Bagaimana cara mengatakan '7' dalam bahasa Jepang?",
+    "quiz_options": ["A) しち", "B) ななつ", "C) しち と ななつ", "D) きゅう"],
+    "quiz_answer": "C",
+    "explanation": "Jawaban: C. Angka 7 bisa dikatakan しち (shichi) atau ななつ (nanatsu). Keduanya benar, tergantung konteksnya."
+  },
+  {
+    "day": 14,
+    "title": "Kosakata: Warna-Warna",
+    "category": "vocabulary",
+    "content": "🎌 HARI 14: Kosakata Warna dalam Bahasa Jepang\n\nWarna Dasar:\n赤 (aka) = merah\n青 (ao) = biru/hijau\n白 (shiro) = putih\n黒 (kuro) = hitam\n黄色 (kiiro) = kuning\n緑 (midori) = hijau\n紫 (murasaki) = ungu\nオレンジ (orenji) = orange\nピンク (pinku) = pink\n茶 (chairo) = cokelat\n\nContoh Kalimat:\n• 赤い靴 (akai kutsu) = sepatu merah\n• 青い空 (aoi sora) = langit biru\n• 白い雪 (shiroi yuki) = salju putih\n• 黒い車 (kuroi kuruma) = mobil hitam\n\nCatatan:\n• 青 (ao) secara tradisional mencakup biru dan hijau\n• 緑 (midori) = hijau (kata pinjaman modern)\n\nLatihan:\nCoba gambar atau sebutkan benda di sekitar Anda dan sebutkan warnanya dalam bahasa Jepang!",
+    "quiz_question": "Pertanyaan 14: Bagaimana cara mengatakan 'putih' dalam bahasa Jepang?",
+    "quiz_options": ["A) 黒 (kuro)", "B) 白 (shiro)", "C) 赤 (aka)", "D) 青 (ao)"],
+    "quiz_answer": "B",
+    "explanation": "Jawaban: B. 白 (shiro) berarti 'putih'. Jangan lupa, 黒 (kuro) = hitam dan 赤 (aka) = merah."
+  },
+  {
+    "day": 15,
+    "title": "Review: Hiragana & Katakana Lengkap",
+    "category": "review",
+    "content": "🎌 HARI 15: REVIEW HIRAGANA & KATAKANA LENGKAP\n\nTujuan:\nMampu membaca seluruh 46 hiragana dan 46 katakana dengan lancar!\n\nRumus Hiragana:\nあ行: あ い う え お\nか行: か き く け こ\nさ行: さ し す せ そ\nた行: た ち つ て と\nな行: な に ぬ ね の\nは行: は ひ ふ へ ほ\nま行: ま み む め も\nや行: や (ゆ) よ\nら行: ら り る れ ろ\nわ行: わ (を) ん\n\nRumus Katakana:\nア行: ア イ ウ エ オ\nカ行: カ キ ク ケ コ\nサ行: サ シ ス セ ソ\nタ行: タ チ ツ テ ト\nナ行: ナ ニ ヌ ネ ノ\nハ行: ハ ヒ フ ヘ ホ\nマ行: マ ミ ム メ モ\nヤ行: ヤ (ユ) ヨ\nラ行: ラ リ ル レ ロ\nワ行: ワ (ヲ) ン\n\nTest Dirimu:\nCoba baca chart hiragana dan katakana dari atas ke bawah tanpa melihat referensi. Berapa banyak yang bisa dibaca dengan benar?",
+    "quiz_question": "Pertanyaan 15: Berapa jumlah total huruf hiragana dasar?",
+    "quiz_options": ["A) 26", "B) 46", "C) 50", "D) 36"],
+    "quiz_answer": "B",
+    "explanation": "Jawaban: B. Terdapat 46 huruf hiragana dasar (gojūon). Demikian pula terdapat 46 huruf katakana dasar."
+  },
+  {
+    "day": 16,
+    "title": "Kosakata: Angka 11-20 & Waktu",
+    "category": "vocabulary",
+    "content": "🎌 HARI 16: Angka 11-20 & Cara Menyatakan Waktu\n\nAngka 11-20:\n11 = じゅういち (juuichi)\n12 = じゅうに (juuni)\n13 = じゅうさん (juusan)\n14 = じゅうし (juushi)\n15 = じゅうご (juugo)\n16 = じゅうろく (juuroku)\n17 = じゅうしち (juushichi)\n18 = じゅうはち (juuhachi)\n19 = じゅうきゅう (juukyuu)\n20 = にじゅう (nijuu)\n\nMenyatakan Waktu:\n• 午前 (gozen) = AM\n• 午後 (gogo) = PM\n• 時 (ji) = jam\n• 分 (fun/pun) = menit\n\nContoh:\n• 3時 (sanji) = pukul 3\n• 7時半 (shichiji han) = pukul 7.30\n• 午前9時 (gozen ku-ji) = pukul 9 pagi\n• 午後5時 (gogo goji) = pukul 5 sore\n\nLatihan:\nCoba nyatakan waktu-waktu penting dalam harimu dalam bahasa Jepang!",
+    "quiz_question": "Pertanyaan 16: Bagaimana cara mengatakan 'pukul 5 sore' dalam bahasa Jepang?",
+    "quiz_options": ["A) 午前5時 (gozen goji)", "B) 午後5時 (gogo goji)", "C) 5時 (goji)", "D) 午後5分 (gogo gofun)"],
+    "quiz_answer": "B",
+    "explanation": "Jawaban: B. 午後5時 (gogo goji) = pukul 5 sore. 午前 (gozen) = AM, 午後 (gogo) = PM."
+  },
+  {
+    "day": 17,
+    "title": "Tata Bahasa: Partikel は (wa) vs が (ga)",
+    "category": "grammar",
+    "content": "🎌 HARI 17: Partikel は (wa) vs が (ga)\n\nは (wa) - Topik/Subjek:\nMenunjukkan TOPIK pembicaraan.\n例: 私は学生です (Watashi wa gakusei desu) = Saya adalah mahasiswa.\n→ Menyatakan 'Yang saya bicarakan adalah...'\n\nが (ga) - Subjek/Penekanan:\nMenunjukkan SUBYEK yang melakukan aksi, atau penekanan.\n例: 私が行きます (Watashi ga ikimasu) = SAYA yang pergi.\n→ Menekankan bahwa yang pergi adalah SAYA, bukan orang lain.\n\nPerbedaan Kunci:\n• は = 'tentang subjek ini'\n• が = 'subjek ini yang lakukan'\n\nContoh Lengkap:\n私は医者です (Watashi wa ishi desu) = Saya adalah dokter (topik pembicaraan)\n私が医者です (Watashi ga ishi desu) = SAYA yang menjadi dokter (penekanan)\n\nLatihan:\nBuat 2 kalimat untuk masing-masing partikel!",
+    "quiz_question": "Pertanyaan 17: Partikel mana yang menekankan siapa yang melakukan aksi?",
+    "quiz_options": ["A) は (wa)", "B) が (ga)", "C) を (o)", "D) に (ni)"],
+    "quiz_answer": "B",
+    "explanation": "Jawaban: B. が (ga) menekankan siapa yang melakukan aksi. Misalnya: 私が行きます = SAYA yang pergi (bukan orang lain)."
+  },
+  {
+    "day": 18,
+    "title": "Kosakata: Makanan Jepang",
+    "category": "vocabulary",
+    "content": "🎌 HARI 18: Kosakata Makanan Jepang\n\nMakanan Jepang Populer:\n寿司 (sushi) = sushi\n刺身 (sashimi) = sashimi\nラーメン (raamen) = ramen\n天ぷら (tempura) = tempura\nお好み焼き (okonomiyaki) = okonomiyaki\nぎょうざ (gyouza) = gyoza\n丼 (donburi) = mangkuk nasi\n味噌汁 (miso shiru) = sup miso\n\nBahan Makanan:\n米 (kome/bei) = beras\n魚 (sakana/gyo) = ikan\n肉 (niku/niku) = daging\n野菜 (yasai) = sayuran\n海藻 (kaiso) = rumput laut\n\nDi Restoran:\n• メニューをください (menyuu o kudasai) = menu, please\n• これをお願いします (kore o onegaishimasu) = ini, please\n• お会計は？（okaikei wa?）= Berapa jumlahnya?\n• おいしい！（oishii!）= Enak!",
+    "quiz_question": "Pertanyaan 18: Apa bahasa Jepang untuk 'ramen'?",
+    "quiz_options": ["A) 寿司 (sushi)", "B) 天ぷら (tempura)", "C) ラーメン (raamen)", "D) 味噌 (miso)"],
+    "quiz_answer": "C",
+    "explanation": "Jawaban: C. ラーメン (raamen) adalah ramen dalam bahasa Jepang. Ini adalah kata pinjaman dari bahasa Tionghoa 'lamian' (mie)."
+  },
+  {
+    "day": 19,
+    "title": "Tata Bahasa: Negasi (Tidak)",
+    "category": "grammar",
+    "content": "🎌 HARI 19: Bentuk Negasi (Tidak) dalam Bahasa Jepang\n\nNegasi Kata Kerja Bentuk Masu:\nGanti ます (masu) → ません (masen)\n\n食べます (tabemasu) → 食べません (tabemasen) = tidak makan\n飲みます (nomimasu) → 飲みません (nomimasen) = tidak minum\n書きます (kakimasu) → 書きません (kakimasen) = tidak menulis\n\nNegasi Kata Kerja Bentuk Dictionary:\nGanti る (ru) → ない (nai)\n食べる (taberu) → 食べない (tabenai) = tidak makan\n飲む (nomu) → 飲まない (nomanai) = tidak minum\n行く (iku) → 行かない (ikanai) = tidak pergi\n\nContoh Kalimat:\n• 私は日本人ではありません (Watashi wa Nihonjin dewa arimasen) = Saya bukan orang Jepang\n• 私はコーヒーを飲みません (Watashi wa koohii o nomimasen) = Saya tidak minum kopi\n• 行かない (ikanai) = tidak pergi\n\nPola Umum untuk 'Bukan':\nAdjective + ではありません = bukan adjective\nNoun + ではありません = bukan noun",
+    "quiz_question": "Pertanyaan 19: Bagaimana men-negasi kata kerja 食べます (tabemasu)?",
+    "quiz_options": ["A) 食べません (tabemasen)", "B) 食べない (tabenai)", "C) 食べて (tabete)", "D) 食べた (tabeta)"],
+    "quiz_answer": "A",
+    "explanation": "Jawaban: A. 食べます → 食べません (tabemasen). Bentuk masu negasi: ganti ます menjadi ません."
+  },
+  {
+    "day": 20,
+    "title": "Kosakata: Keluarga & Hubungan",
+    "category": "vocabulary",
+    "content": "🎌 HARI 20: Kosakata Keluarga dalam Bahasa Jepang\n\nAnggota Keluarga:\n父 (chichi/oya) = ayah\n母 (haha/oya) = ibu\nお父さん (otousan) = bapak (sopan)\nお母さん (okaa-san) = ibu (sopan)\n兄 (ani) = kakak laki-laki\n姉 (ane) = kakak perempuan\n弟 (otouto) = adik laki-laki\n妹 (imouto) = adik perempuan\n祖父 (sofu) = kakek\n祖母 (sobo) = nenek\n息子 (musuko) = anak laki-laki\n娘 (musume) = anak perempuan\n\nKata Sifat:\n• 家族 (kazoku) = keluarga\n• 大きい (ookii) = besar\n• 小さい (chiisai) = kecil\n• 年上 (toshiue) = lebih tua\n• 年下 (toshishita) = lebih muda\n\nContoh Kalimat:\n• 私の父は医者です (Watashi no chichi wa ishi desu) = Ayah saya adalah dokter\n• 私の妹は学生です (Watashi no imouto wa gakusei desu) = Adik perempuan saya adalah mahasiswa\n\nCatatan:\nDalam bahasa Jepang, sering menggunakan nama rumah tangga untuk menyebut keluarga sendiri.",
+    "quiz_question": "Pertanyaan 20: Apa bahasa Jepang untuk 'adik perempuan'?",
+    "quiz_options": ["A) 兄 (ani)", "B) 姉 (ane)", "C) 弟 (otouto)", "D) 妹 (imouto)"],
+    "quiz_answer": "D",
+    "explanation": "Jawaban: D. 妹 (imouto) = adik perempuan. 兄 (ani) = kakak laki-laki, 姉 (ane) = kakak perempuan, 弟 (otouto) = adik laki-laki."
+  },
+  {
+    "day": 21,
+    "title": "Tata Bahasa: Kata Sifat I-Adj & Na-Adj",
+    "category": "grammar",
+    "content": "🎌 HARI 21: Kata Sifat dalam Bahasa Jepang\n\nKata Sifat I-Adj (形容词):\nBentuk dictionary + だ (da) / じゃない (janai) untuk negasi\n美しい (utsukushii) = indah → 美しいです (utsukushii desu)\n大きい (ookii) = besar → 大きいです (ookii desu)\n高い (takai) = mahal/tinggi → 高いです (takai desu)\n安い (yasui) = murah → 安いです (yasui desu)\n小さい (chiisai) = kecil → 小さいです (chiisai desu)\n\nKata Sifat Na-Adj (形容動詞):\nKata + な (na) untuk atribut\n静か (shizuka) = tenang → 静かです (shizuka desu)\nきれい (kirei) = bersih → きれいです (kirei desu)\n上手 (jouzu) = terampil → 上手です (jouzu desu)\n\nNegasi:\nI-adj: くない (kunai) atau ではない (dewa nai)\nNa-adj: じゃない (janai) またはではありません (dewa arimasen)\n\nContoh:\n美しくない (utsukushii nai) = tidak indah\n静かじゃない (shizuka janai) = tidak tenang",
+    "quiz_question": "Pertanyaan 21: Jenis kata sifat apa yang '大きい (ookii)'?",
+    "quiz_options": ["A) Na-adj", "B) I-adj", "C) Verb", "D) Noun"],
+    "quiz_answer": "B",
+    "explanation": "Jawaban: B. 大きい (ookii) adalah I-adj (kata sifat i-adjective). Kata sifat i-adj berakhiran 'i' dalam bentuk dictionary dan langsung diikuti 'da/desu'."
+  },
+  {
+    "day": 22,
+    "title": "Kosakata: Transportasi & Arah",
+    "category": "vocabulary",
+    "content": "🎌 HARI 22: Kosakata Transportasi & Arah\n\nTransportasi:\n電車 (densha) = kereta api\nバス (basu) = bus\nタクシー (takushii) = taksi\n飛行機 (hikouki) = pesawat\n船 (fune) = kapal\n自転車 (jitensha) = sepeda\n地下鉄 (chikatetsu) = subway/metro\n新幹線 (shinkansen) = kereta cepat bullet train\n\nArah & Tempat:\n駅 (eki) = stasiun\n空港 (kuukou) = bandara\n学校 (gakkou) = sekolah\n会社 (kaisha) = perusahaan\n病院 (byouin) = rumah sakit\n店 (mise) = toko\n銀行 (ginkou) = bank\n\nFrasa Penting:\n• どこに行きますか (doko ni ikimasu ka) = Kemana Anda pergi?\n• 駅はどこですか (eki wa doko desu ka) = Di mana stasinya?\n• 〜まで何分かかりますか (made nan-pun kakarimasu ka) = Berapa lama sampai ke...?\n• 右に曲がって (migi ni magatte) = Belok kanan\n• 左に曲がって (hidari ni magatte) = Belok kiri",
+    "quiz_question": "Pertanyaan 22: Apa bahasa Jepang untuk 'stasiun'?",
+    "quiz_options": ["A) 空港 (kuukou)", "B) 駅 (eki)", "C) 銀行 (ginkou)", "D) 病院 (byouin)"],
+    "quiz_answer": "B",
+    "explanation": "Jawaban: B. 駅 (eki) berarti 'stasiun'. 空港 (kuukou) = bandara, 銀行 (ginkou) = bank, 病院 (byouin) = rumah sakit."
+  },
+  {
+    "day": 23,
+    "title": "Tata Bahasa: Bentuk Passar 'Masu' (Ta-form)",
+    "category": "grammar",
+    "content": "🎌 HARI 23: Bentuk Passar (Ta-form) Kata Kerja\n\nTa-form (た形):\nDigunakan untuk:\n1. Kejadian lalu (past tense)\n2. Menghubungkan dua aksi\n\nCara Membuat:\nます → Ta\n食べます → 食べた (tabeta) = sudah makan\n飲みます → 飲んだ (nonda) = sudah minum\n書きます → 書いた (kaita) = sudah menulis\n読みます → 読んだ (yonda) = sudah membaca\n行きます → 行った (itta) = sudah pergi\n来ます → 来た (kita) = sudah datang\n\nAturan Umum:\nます → た (masu → ta)\n\nContoh Kalimat:\n• 昨日日本へ行った (Kinou Nihon e itta) = Kemarin saya pergi ke Jepang\n• 寿司を食べた (Sushi o tabeta) = Saya sudah makan sushi\n• 朝ご飯を食べてから出かけた (Asa-gohan o tte kara dekaketa) = Setelah makan sarapan, saya pergi\n\nTadaima! = Baru saja tiba!",
+    "quiz_question": "Pertanyaan 23: Bentuk ta dari 飲みます (nomimasu) adalah?",
+    "quiz_options": ["A) 飲んだ (nonda)", "B) 飲む (nomu)", "C) 飲みた (nomita)", "D) 飲まなかった (nomanakatta)"],
+    "quiz_answer": "A",
+    "explanation": "Jawaban: A. 飲みます → 飲んだ (nonda). Bentuk ta: hapus 'masu' dan ganti dengan 'ta'."
+  },
+  {
+    "day": 24,
+    "title": "Kosakata: Tematik Jepang & Budaya",
+    "category": "vocabulary",
+    "content": "🎌 HARI 24: Kosakata Tematik Jepang & Budaya\n\nTempat Wisata:\n京都 (Kyoto) = Kyoto\n東京 (Tokyo) = Tokyo\n大阪 (Osaka) = Osaka\n富士山 (Fuji-san) = Gunung Fuji\n金閣寺 (Kinkakuji) = Kinkaku-ji\n嵐山 (Arashiyama) = Arashiyama\n秋葉原 (Akihabara) = Akihabara (otaku district)\n新宿 (Shinjuku) = Shinjuku\n\nBudaya Jepang:\n花見 (hanami) = menonton bunga sakura\n茶道 (sadou/chado) = upacara teh\n書道 (shodou) = kaligrafi Jepang\n剣道 (kendou) = fencing Jepang\n浴衣 (yukata) = kimono ringan\n和菓子 (wagashi) = makanan manis Jepang\n\nKata Terkait:\n美しい (utsukushii) = indah\n古典 (koten) = klasik\n伝統 (dentou) = tradisi\n現代 (gendaish) = modern",
+    "quiz_question": "Pertanyaan 24: Apa nama festival menonton bunga sakura dalam bahasa Jepang?",
+    "quiz_options": ["A) 紅葉 (momiji)", "B) 花見 (hanami)", "C) 節分 (setsubun)", "D) お正月 (oshougatsu)"],
+    "quiz_answer": "B",
+    "explanation": "Jawaban: B. 花見 (hanami) = festival menonton bunga sakura. 紅葉 (momiji) = daun musim gugur, 節分 (setsubun) = festival setbulan, お正月 (oshougatsu) = Tahun Baru."
+  },
+  {
+    "day": 25,
+    "title": "Tata Bahasa: Frasa 'Te-form'",
+    "category": "grammar",
+    "content": "🎌 HARI 25: Frasa 'Te-form' (て形)\n\nTe-form digunakan untuk:\n1. Menghubungkan dua aksi (A lalu B)\n2. Meminta izin (te-form + kudasai)\n3. Menyatakan tempat/arah\n\nCara Membuat:\nます → て (masu → te)\n食べます → 食べて (tabete)\n飲みます → 飲んで (nonde)\n書きます → 書いて (kaite)\n読みます → 読んで (yonde)\n行きます → 行って (itte)\n来ます → 来て (kite)\n見ます → 見て (mite)\n\nContoh Kalimat:\n• 食べてから勉強します (Tabete kara benkyou shimasu) = Setelah makan, saya belajar\n• 見てください (Mite kudasai) = Silakan lihat\n• 日本へ行って写真を撮りました (Nihon e itte shashin o torimashita) = Saya pergi ke Jepang dan mengambil foto\n\nLatihan:\nUbah 書きます ke te-form!",
+    "quiz_question": "Pertanyaan 25: Apa te-form dari 書きます (kakimasu)?",
+    "quiz_options": ["A) 書いて (kaite)", "B) 書た (kita)", "C) 書ます (kakimasu)", "D) 書ない (kakanai)"],
+    "quiz_answer": "A",
+    "explanation": "Jawaban: A. 書きます → 書いて (kaite). Aturan: ganti ます dengan て."
+  },
+  {
+    "day": 26,
+    "title": "Kosakata: Profesi & Pekerjaan",
+    "category": "vocabulary",
+    "content": "🎌 HARI 26: Kosakata Profesi & Pekerjaan\n\nProfesi:\n教師 (kyoushi) = guru\n医者 (ishi) = dokter\n看護師 (kangoshi) = perawat\n弁護士 (bengoshi) = pengacara\n会社員 (kaishain) = karyawan\n教師 (sensei) = guru/pengajar\n大学生 (daigakusei) = mahasiswa\n学生 (gakusei) = pelajar\n会社員 (kaishain) = pekerja kantoran\n\nPertanyaan Wawancara:\n• お仕事は何ですか? (Oshigoto wa nan desu ka?) = Apa pekerjaan Anda?\n• 何をしていますか? (Nan o shite imasu ka?) = Apa yang Anda kerjakan?\n• どこで働いていますか? (Doko de hataraite imasu ka?) = Di mana Anda bekerja?\n\nContoh Kalimat:\n• 私は会社員です (Watashi wa kaishain desu) = Saya adalah karyawan\n• 彼は医者です (Kare wa ishi desu) = Dia adalah dokter\n• 彼女は看護師です (Kanojo wa kangoshi desu) = Dia adalah perawat\n\nCatatan:\n先生 (sensei) bisa berarti guru, pengajar, atau bahkan dokter!",
+    "quiz_question": "Pertanyaan 26: Apa bahasa Jepang untuk 'perawat'?",
+    "quiz_options": ["A) 医者 (ishi)", "B) 看護師 (kangoshi)", "C) 弁護士 (bengoshi)", "D) 教師 (kyoushi)"],
+    "quiz_answer": "B",
+    "explanation": "Jawaban: B. 看護師 (kangoshi) = perawat. 医者 (ishi) = dokter, 弁護士 (bengoshi) = pengacara, 教師 (kyoushi) = guru."
+  },
+  {
+    "day": 27,
+    "title": "Tata Bahasa: Kata Kerja 'Suru' dan 'Kudasai'",
+    "category": "grammar",
+    "content": "🎌 HARI 27: Kata Kerja 'Suru' & 'Kudasai'\n\nする (suru) = melakukan\nBentuk masu: します (shimasu)\n\nContoh:\n• 勉強する (benkyou suru) = belajar\n• 勉強します (benkyou shimasu) = saya belajar\n• 運動する (undou suru) = berolahraga\n• 運動します (undou shimasu) = saya berolahraga\n\n〜てください (te kudasai) = Silakan...\n• 見てください (Mite kudasai) = Silakan lihat\n• 話してください (Hanashite kudasai) = Silakan bicara\n• 聞いてください (Kiite kudasai) = Silakan dengar\n• 待ってください (Matte kudasai) = Silakan tunggu\n\n〜ましょう (mashou) = Ayo kita...\n• 行きましょう (Ikimashou) = Ayo pergi\n• 食べましょう (Tabemashou) = Ayo makan\n• 勉強しましょう (Benkyou shimashou) = Ayo belajar\n\nContoh Lengkap:\n一緒に行きましょう (Issho ni ikimashou) = Ayo pergi bersama-sama",
+    "quiz_question": "Pertanyaan 27: Bagaimana cara mengatakan 'Ayo belajar!' dalam bahasa Jepang?",
+    "quiz_options": ["A) 勉強します (benkyou shimasu)", "B) 勉強しましょう (benkyou shimashou)", "C) 勉強してください (benkyou shite kudasai)", "D) 勉強しません (benkyou shimasen)"],
+    "quiz_answer": "B",
+    "explanation": "Jawaban: B. 勉強しましょう (benkyou shimashou) = 'Ayo belajar!'. 〜ましょう (mashou) menyatakan ajakan/kerjasama."
+  },
+  {
+    "day": 28,
+    "title": "Kosakata: Kata Kerja Sehari-hari",
+    "category": "vocabulary",
+    "content": "🎌 HARI 28: Kata Kerja Sehari-hari\n\nKata Kerja Penting:\n食べる (taberu) = makan\n飲む (nomu) = minum\n行く (iku) = pergi\n来る (kuru) = datang\n見る (miru) = melihat/membaca\n聞く (kiku) = mendengar\n書く (kaku) = menulis\n読む (yomu) = membaca\n話す (hanasu) = berbicara\n座る (suwaru) = duduk\n起きる (okiru) = bangun (dari tidur)\n寝る (neru) = tidur\n洗う (arau) = mencuci\n拭く (fuku) = mengelap\n買う (kau) = membeli\n売る (uru) = menjual\n\nContoh Kalimat:\n• 毎朝7時に起きます (Mainasa 7-ji ni okimasu) = Bangun pukul 7 setiap pagi\n• 友達に電話します (Tomodachi ni denwa shimasu) = Menelpon teman\n• 本を読みます (Hon o yomimasu) = Membaca buku\n\nPerhatikan:\n来る (kuru) = datang (menuju pembicara)\n行く (iku) = pergi (menjauhi pembicara)",
+    "quiz_question": "Pertanyaan 28: Perhatikan perbedaan 来る (kuru) dan 行く (iku)!",
+    "quiz_options": ["A) Keduanya berarti pergi", "B) Kuru = datang, Iku = pergi", "C) Keduanya berarti datang", "D) Kuru = makan, Iku = minum"],
+    "quiz_answer": "B",
+    "explanation": "Jawaban: B. 来る (kuru) = datang (menuju pembicara), 行く (iku) = pergi (menjauhi pembicara). Ini perbedaan penting!"
+  },
+  {
+    "day": 29,
+    "title": "Tata Bahasa: Pola Kalimat Lanjutan",
+    "category": "grammar",
+    "content": "🎌 HARI 29: Pola Kalimat Lanjutan & Konjungsi\n\nKonjungsi Penting:\nが (ga) = tetapi (tapi)\nでも (demo) = tetapi (namun)\nそして (soshite) = dan\nまた (mata) = juga, lagi\nだから (dakara) = jadi\nなぜなら (nazenara) = karena\nもし (moshi) = jika\n\nContoh Kalimat:\n• 暑いですが、風呂に行きます (Atsui desu ga, ofuro ni ikimasu) = Meskipun panas, saya pergi mandi\n• 天気が良いですが、少し寒いです (Tenki ga ii desu ga, sukoshi samui desu) = Cuaca bagus, tapi sedikit dingin\n• 日本語が好きです (Nihongo ga suki desu) = Saya suka bahasa Jepang\n• 勉強したいです (Benkyou shitai desu) = Saya ingin belajar\n• もしよかったら、行きましょう (Moshi yokattara, ikimashou) = Kalau mau, ayo pergi\n\n〜たい (tai) = ingin (melakukan)\n食べたい (tabetai) = ingin makan\n行きたい (ikitai) = ingin pergi\n見たい (mitai) = ingin lihat\n\nPola: Verb Dictionary + tai = ingin melakukan aksi",
+    "quiz_question": "Pertanyaan 29: Bagaimana cara mengatakan 'Saya ingin makan'?",
+    "quiz_options": ["A) 食べます (tabemasu)", "B) 食べたい (tabetai)", "C) 食べなかった (tabenakatta)", "D) 食べろ (tabero)"],
+    "quiz_answer": "B",
+    "explanation": "Jawaban: B. 食べたい (tabetai) = 'Saya ingin makan'. Polanya: verb dictionary + tai."
+  },
+  {
+    "day": 30,
+    "title": "Final Review & Quiz Besar",
+    "category": "review",
+    "content": "🎌 HARI 30: FINAL REVIEW & QUIZ BESAR!\n\nSelamat! Anda sudah menyelesaikan 30 hari belajar bahasa Jepang!\n\nTEST DIRIMU:\n\n1. Apa arti こんにちは?\n\n2. Tulis hiragana untuk bunyi 'shi'!\n\n3. Berapa '5' dalam bahasa Jepang?\n\n4. Apa bentuk masu dari 見る (miru)?\n\n5. Bagaimana mengatakan 'Saya tidak pergi'?\n\n6. Apa partikel untuk objek langsung?\n\n7. Apa arti 先生 (sensei)?\n\n8. Tulis te-form dari 書きます (kakimasu)!\n\n9. Apa 'kucing' dalam bahasa Jepang?\n\n10. Bagaimana cara mengatakan 'Ayo kita minum!'?\n\nJawaban:\n1. Selamat siang\n2. し\n3. ご (go)\n4. 見ます (mimasu)\n5. 行きません (ikimasen)\n6. を (o)\n7. Guru/Pengajar (dokter juga bisa)\n8. 書いて (kaite)\n9. 猫 (neko)\n10. 飲みましょう (nomimashou)!\n\nTeruslah berlatih! がんばって！(Ganbatte! = Semangat!)",
+    "quiz_question": "Pertanyaan 30: Apa arti 先生 (sensei) dalam bahasa Indonesia?",
+    "quiz_options": ["A) Pelajar", "B) Guru/Pengajar (bisa juga dokter)", "C) Murid", "D) Kepala sekolah"],
+    "quiz_answer": "B",
+    "explanation": "Jawaban: B. 先生 (sensei) = guru/pengajar. Juga bisa digunakan untuk dokter dan profesional lainnya. Hormat tinggi!"
+  }
+]
