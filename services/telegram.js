@@ -2,8 +2,25 @@ const { Telegraf } = require('telegraf');
 const fs = require('fs');
 const path = require('path');
 const db = require('../database/db');
-const { isAIEnabled, getModel, getVisionModel, askGroq, describeImage } = require('./ai');
+const { isAIEnabled, getModel, getVisionModel, humanizeAIError, getLastAIError, askGroq, describeImage } = require('./ai');
 const BOT_VERSION = require('../package.json').version;
+
+// ---- memory percakapan per user (in-memory, 3 pertukaran terakhir) ----
+const chatMemory = new Map();
+function getHistory(chatId) {
+  const rows = chatMemory.get(chatId) || [];
+  const out = [];
+  for (const r of rows.slice(-3)) {
+    out.push({ role: 'user', content: r.q });
+    out.push({ role: 'assistant', content: r.a });
+  }
+  return out;
+}
+function pushMemory(chatId, q, a) {
+  const rows = chatMemory.get(chatId) || [];
+  rows.push({ q: String(q).slice(0, 400), a: String(a).slice(0, 400) });
+  chatMemory.set(chatId, rows.slice(-3));
+}
 
 let bot = null;
 let broadcastTimer = null;
@@ -186,11 +203,12 @@ function answerQuestionLocal(query) {
     return '❓ Tulis pertanyaanmu setelah /tanya ya.\nContoh: /tanya apa arti konnichiwa?';
   }
 
-  // sapaan ringan
-  if (/^(halo|hai|hello|hei|pagi|siang|sore|malam|konnichiwa|ohayou|konbanwa)/.test(ql)) {
+  // sapaan ringan — hanya untuk pesan PENDEK agar tidak membajak pertanyaan asli
+  // mis. "selamat pagi, apa arti ...?" harus masuk pencarian, bukan template sapaan
+  if (q.length < 30 && /^(halo|hai|hello|hei|pagi|siang|sore|malam|konnichiwa|ohayou|konbanwa)\b/.test(ql)) {
     return '👋 Halo! Saya asisten bahasa Jepang kamu. Tanya apa saja, misalnya:\n• /tanya apa arti arigatou?\n• /tanya cara baca し\n• /tanya bedanya hiragana dan katakana\n\nAtau kirim /belajar untuk pelajaran hari ini.';
   }
-  if (ql.includes('terima kasih') || ql.includes('makasih') || ql.includes('arigatou')) {
+  if (q.length < 50 && (ql.includes('terima kasih') || ql.includes('makasih') || ql.includes('arigatou'))) {
     return '😊 Sama-sama! Dalam bahasa Jepang: どういたしまして (Douitashimashite) = sama-sama.\n\nMau lanjut? Coba /tanya apa arti sumimasen?';
   }
   if (ql.includes('siapa kamu') || ql.includes('kamu siapa')) {
@@ -220,18 +238,25 @@ function answerQuestionLocal(query) {
   return truncate(text);
 }
 
-// Jawab pertanyaan apa pun: pakai Groq AI bila API key tersedia,
-// fallback ke jawaban lokal berbasis materi bila AI mati/gagal.
-async function answerQuestion(query) {
+// Jawab pertanyaan apa pun: AI dulu (dengan memory), fallback lokal transparan.
+// Tidak pernah gagal diam-diam: bila AI error, user diberi tahu sebabnya.
+async function answerQuestion(query, chatId = null) {
   const q = (query || '').trim();
   if (!q) {
     return '❓ Tulis pertanyaanmu setelah /tanya ya.\nContoh: /tanya apa arti konnichiwa?';
   }
   if (isAIEnabled()) {
     const hits = searchLessons(q, 2);
-    const aiAnswer = await askGroq(q, buildLessonContext(hits));
-    if (aiAnswer) return truncate('🤖 ' + aiAnswer);
-    // AI gagal -> lanjut ke fallback lokal di bawah
+    try {
+      const aiAnswer = await askGroq(q, buildLessonContext(hits), {
+        history: chatId ? getHistory(chatId) : []
+      });
+      if (chatId) pushMemory(chatId, q, aiAnswer);
+      return truncate('🤖 ' + aiAnswer);
+    } catch (e) {
+      const local = answerQuestionLocal(q);
+      return `${local}\n\n⚠️ Catatan jujur: AI Groq gagal (${humanizeAIError(e)}). Di atas jawaban cadangan lokal. Cek /ai untuk detail.`;
+    }
   }
   return answerQuestionLocal(q);
 }
@@ -273,13 +298,16 @@ async function handleQuizAnswer(ctx, rawLetter) {
   // AI meresuki quiz: bila aktif, biarkan AI menyusun pesan koreksinya
   if (isAIEnabled()) {
     const quizCtx = `Quiz Hari ${lesson.day_number}: ${lesson.quiz_question}\nPilihan:\n${options.join('\n')}\nJawaban benar: ${correct}\nJawaban murid: ${letter} (${isCorrect ? 'BENAR' : 'SALAH'})\nPenjelasan kunci: ${lesson.explanation}\nSkor murid sejauh ini: ${stats.correct} benar dari ${stats.answered} quiz.`;
-    const aiMsg = await askGroq(
-      'Koreksi jawaban quiz murid di atas. Sebutkan benar/salah dengan jelas, jelaskan singkat kenapa, beri semangat 1 kalimat, dan tutup dengan skornya. Maksimal 5 kalimat, Bahasa Indonesia.',
-      quizCtx,
-      { maxTokens: 300, temperature: 0.8 }
-    );
-    if (aiMsg) {
+    try {
+      const aiMsg = await askGroq(
+        'Koreksi jawaban quiz murid di atas. Sebutkan benar/salah dengan jelas, jelaskan singkat kenapa, beri semangat 1 kalimat, dan tutup dengan skornya. Maksimal 5 kalimat, Bahasa Indonesia.',
+        quizCtx,
+        { maxTokens: 300, temperature: 0.8 }
+      );
       await ctx.reply(truncate((isCorrect ? '✅ ' : '❌ ') + aiMsg));
+      return;
+    } catch (e) {
+      await ctx.reply(truncate(local + `\n\n⚠️ Koreksi AI gagal (${humanizeAIError(e)}), di atas versi lokal.`));
       return;
     }
   }
@@ -475,7 +503,7 @@ function startTelegram(botToken) {
     const full = ctx.message.text || '';
     const question = full.replace(/^\/tanya(@\w+)?\s*/, '').trim();
     if (question) {
-      await ctx.reply(await answerQuestion(question));
+      await ctx.reply(await answerQuestion(question, chatId));
     } else {
       db.setUserState(chatId, { mode: 'qa' });
       await ctx.reply(
@@ -498,6 +526,8 @@ function startTelegram(botToken) {
   bot.command('ai', async (ctx) => {
     const lessons = db.getLessons().length;
     const photos = db.getPhotoVocab().length;
+    const lastErr = getLastAIError();
+    const memCount = (chatMemory.get(ctx.chat.id.toString()) || []).length;
     await ctx.reply(
       `🤖 STATUS AI\n\n` +
       `Mode: ${isAIEnabled() ? 'AKTIF ✅ (Groq)' : 'LOKAL ⚠️ (GROQ_API_KEY belum diisi)'}\n` +
@@ -505,6 +535,8 @@ function startTelegram(botToken) {
       `Model vision: ${getVisionModel()}\n` +
       `Materi: ${lessons} pelajaran\n` +
       `Pool foto: ${photos} foto\n` +
+      `Memory chat kamu: ${memCount} pertukaran\n` +
+      `Error AI terakhir: ${lastErr ? `${lastErr.code} (${lastErr.detail}) @ ${lastErr.at}` : 'tidak ada ✅'}\n` +
       `Versi bot: v${BOT_VERSION}\n\n` +
       (isAIEnabled()
         ? 'AI meresuki semuanya: /tanya, chat bebas, koreksi quiz, dan baca foto. Silakan uji saya! 💪'
@@ -552,7 +584,7 @@ function startTelegram(botToken) {
 
     // 2. mode tanya aktif -> anggap pertanyaan
     if (state && state.mode === 'qa') {
-      await ctx.reply(await answerQuestion(text));
+      await ctx.reply(await answerQuestion(text, chatId));
       return;
     }
 
@@ -560,13 +592,13 @@ function startTelegram(botToken) {
     const looksQuestion = (text.length > 3 && /[?]/.test(text)) ||
       /^(apa|bagaimana|gimana|kenapa|kapan|dimana|arti|artinya|cara|jelaskan|tolong|bedanya)\b/i.test(text);
     if (looksQuestion) {
-      await ctx.reply(await answerQuestion(text) + '\n\n(Ketik /tanya untuk mode tanya terus-menerus, /selesai untuk keluar.)');
+      await ctx.reply(await answerQuestion(text, chatId) + '\n\n(Ketik /tanya untuk mode tanya terus-menerus, /selesai untuk keluar.)');
       return;
     }
 
     // 4. AI aktif -> AI menjawab teks apa pun; mode lokal -> hint singkat
     if (isAIEnabled() && text.length > 1) {
-      await ctx.reply(await answerQuestion(text));
+      await ctx.reply(await answerQuestion(text, chatId));
       return;
     }
     await ctx.reply('👋 Kirim /belajar untuk materi, /quiz untuk latihan, atau /tanya <pertanyaan> untuk bertanya. /help untuk daftar lengkap.');
@@ -605,7 +637,13 @@ function startTelegram(botToken) {
         return;
       }
       const mime = 'image/jpeg';
-      const result = await describeImage({ base64: buf.toString('base64'), mimeType: mime, question });
+      let result = null;
+      try {
+        result = await describeImage({ base64: buf.toString('base64'), mimeType: mime, question });
+      } catch (e) {
+        await ctx.reply(`😔 AI vision gagal (${humanizeAIError(e)}). Cek /ai lalu coba lagi ya.`);
+        return;
+      }
       if (!result) {
         await ctx.reply('😔 Maaf, saya gagal membaca foto ini. Coba lagi dengan foto yang lebih jelas.');
         return;

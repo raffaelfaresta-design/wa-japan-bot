@@ -32,7 +32,7 @@ TELEGRAM_BOT_TOKEN=your_telegram_bot_token
 
 # Opsional tapi disarankan: agar bot bisa jawab pertanyaan APAPUN
 GROQ_API_KEY=your_groq_api_key
-GROQ_MODEL=llama-3.3-70b-versatile
+GROQ_MODEL=qwen/qwen3.6-27b
 GROQ_VISION_MODEL=qwen/qwen3.6-27b
 
 BROADCAST_INTERVAL_MINUTES=60
@@ -79,7 +79,7 @@ git push -u origin main
 5. Tambahkan Environment Variables:
    - `TELEGRAM_BOT_TOKEN` - token bot Telegram
    - `GROQ_API_KEY` - API key Groq (agar bisa jawab apa pun)
-   - `GROQ_MODEL` - opsional, default `llama-3.3-70b-versatile`
+   - `GROQ_MODEL` - opsional, default `qwen/qwen3.6-27b` (teks+vision)
    - `BROADCAST_INTERVAL_MINUTES` - opsional, default `60`
 6. Klik **Create Web Service**
 

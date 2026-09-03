@@ -1,9 +1,32 @@
-// Groq AI client (OpenAI-compatible) + fallback lokal.
+// Groq AI client (OpenAI-compatible).
 // Tidak butuh dependency tambahan: memakai global fetch (Node >= 18).
+//
+// Prinsip: GAGAL ITU BERISIK. Fungsi di sini MELEMPAR AIError saat gagal
+// (bukan diam-diam null) agar bot bisa memberi tahu user sebabnya,
+// bukan malah menjawab pakai template basi.
 
 const GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions';
-const DEFAULT_MODEL = 'llama-3.3-70b-versatile';
+const DEFAULT_MODEL = 'qwen/qwen3.6-27b'; // teks+vision, terverifikasi aktif Sep 2026
 const DEFAULT_VISION_MODEL = 'qwen/qwen3.6-27b';
+
+class AIError extends Error {
+  constructor(code, message) {
+    super(message);
+    this.name = 'AIError';
+    this.aiCode = code;
+  }
+}
+
+let lastAIError = null; // { code, detail, at } — ditampilkan di /ai agar "gajelas" hilang
+
+function noteAIError(code, detail) {
+  lastAIError = { code, detail: String(detail || '').slice(0, 200), at: new Date().toISOString() };
+  console.error(`[AI] gagal (${code}): ${lastAIError.detail}`);
+}
+
+function getLastAIError() {
+  return lastAIError;
+}
 
 function isAIEnabled() {
   return Boolean(process.env.GROQ_API_KEY && process.env.GROQ_API_KEY.trim());
@@ -17,24 +40,32 @@ function getVisionModel() {
   return (process.env.GROQ_VISION_MODEL || DEFAULT_VISION_MODEL).trim();
 }
 
+function humanizeAIError(err) {
+  const code = err && (err.aiCode || err.code);
+  if (code === 401 || code === 'invalid_api_key') return 'API key salah / kedaluwarsa / dicabut';
+  if (code === 404 || code === 'model_not_found') return 'model AI sudah pensiun / tidak tersedia (ganti GROQ_MODEL)';
+  if (code === 429 || code === 'rate_limit_exceeded') return 'limit gratis Groq habis, coba lagi nanti';
+  if (code === 'timeout') return 'AI timeout (jaringan lambat)';
+  if (code === 'network') return 'tidak bisa mencapai server Groq (jaringan)';
+  if (code === 'empty_response') return 'AI merespons kosong';
+  return (err && err.message) || 'kesalahan tidak dikenal';
+}
+
 const SYSTEM_PROMPT = `Kamu adalah Sensei AI, pengajar bahasa Jepang yang ramah untuk orang Indonesia.
 Aturan:
 - Jawab SELALU dalam Bahasa Indonesia (kecuali contoh bahasa Jepang + romaji + arti).
-- singing: setiap kosakata/frasa Jepang wajib disertai cara baca romaji dan arti Indonesia.
+- Setiap kosakata/frasa Jepang wajib disertai cara baca romaji dan arti Indonesia.
 - Jawaban ringkas tapi lengkap, cocok dibaca di chat Telegram (maksimal ~700 kata).
+- PENTING: jawab LANGSUNG tanpa menunjukkan proses berpikir. Jangan pernah menulis tag <think> atau menjelaskan langkah berpikirmu.
+- Ingat konteks percakapan sebelumnya (riwayat chat diberikan) untuk menjawab pertanyaan lanjutan seperti "kalau ...?", "terus?".
 - Jika pertanyaan di luar bahasa Jepang, tetap jawab dengan baik lalu kaitkan kembali ke belajar bahasa Jepang bila relevan.
 - Jika diberi KONTEKS MATERI, prioritaskan isinya agar konsisten dengan kurikulum, tapi boleh menambah penjelasan sendiri.`;
 
-async function askGroq(question, lessonContext = '', opts = {}) {
+async function groqChat({ model, messages, temperature, maxTokens, timeoutMs }) {
   const apiKey = (process.env.GROQ_API_KEY || '').trim();
-  if (!apiKey) return null;
-
-  const userContent = lessonContext
-    ? `KONTEKS MATERI (jadikan acuan utama bila relevan):\n${lessonContext}\n\nPERTANYAAN MURID:\n${question}`
-    : question;
+  if (!apiKey) throw new AIError('no_api_key', 'GROQ_API_KEY belum diisi');
 
   const controller = new AbortController();
-  const timeoutMs = parseInt(process.env.GROQ_TIMEOUT_MS || '25000', 10);
   const timer = setTimeout(() => controller.abort(), timeoutMs);
 
   try {
@@ -45,44 +76,70 @@ async function askGroq(question, lessonContext = '', opts = {}) {
         'Authorization': `Bearer ${apiKey}`,
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({
-        model: getModel(),
-        messages: [
-          { role: 'system', content: SYSTEM_PROMPT },
-          { role: 'user', content: userContent }
-        ],
-        temperature: opts.temperature !== undefined ? opts.temperature : 0.7,
-        max_tokens: opts.maxTokens || 900
-      })
+      body: JSON.stringify({ model, messages, temperature, max_tokens: maxTokens })
     });
 
     if (!res.ok) {
       const body = await res.text().catch(() => '');
-      console.error(`[AI] Groq error ${res.status}: ${body.slice(0, 200)}`);
-      return null;
+      let code = res.status;
+      try {
+        const j = JSON.parse(body);
+        if (j && j.error && j.error.code) code = j.error.code;
+      } catch (e) { /* abaikan */ }
+      throw new AIError(code, body.slice(0, 300));
     }
     const data = await res.json();
-    const text = data && data.choices && data.choices[0] && data.choices[0].message
+    let text = data && data.choices && data.choices[0] && data.choices[0].message
       ? data.choices[0].message.content
       : null;
-    return (text || '').trim() || null;
+    text = (text || '').trim();
+    // buang jejak thinking model reasoning (qwen <think>...</think>) agar jawaban bersih
+    text = text.replace(/<(think|thinking)>[\s\S]*?(<\/\1>|$)/gi, '').trim();
+    if (!text) throw new AIError('empty_response', 'respons kosong dari model');
+    return text;
   } catch (e) {
-    console.error('[AI] Groq request gagal:', e.name === 'AbortError' ? 'timeout' : e.message);
-    return null;
+    if (e instanceof AIError) {
+      noteAIError(e.aiCode, e.message);
+      throw e;
+    }
+    const code = e && e.name === 'AbortError' ? 'timeout' : 'network';
+    noteAIError(code, (e && e.message) || code);
+    throw new AIError(code, (e && e.message) || code);
   } finally {
     clearTimeout(timer);
   }
 }
 
-module.exports = { isAIEnabled, getModel, getVisionModel, askGroq, describeImage };
+// Tanya jawab teks. history: [{role:'user'|'assistant', content}] — memory percakapan.
+// MELEMPAR AIError bila gagal.
+async function askGroq(question, lessonContext = '', opts = {}) {
+  const userContent = lessonContext
+    ? `KONTEKS MATERI (jadikan acuan utama bila relevan):\n${lessonContext}\n\nPERTANYAAN MURID:\n${question}`
+    : question;
+
+  const messages = [{ role: 'system', content: opts.system || SYSTEM_PROMPT }];
+  for (const h of (opts.history || [])) {
+    if (h && (h.role === 'user' || h.role === 'assistant') && h.content) {
+      messages.push({ role: h.role, content: String(h.content).slice(0, 800) });
+    }
+  }
+  messages.push({ role: 'user', content: userContent });
+
+  return groqChat({
+    model: opts.model || getModel(),
+    messages,
+    temperature: opts.temperature !== undefined ? opts.temperature : 0.7,
+    maxTokens: opts.maxTokens || 1200,
+    timeoutMs: parseInt(process.env.GROQ_TIMEOUT_MS || '25000', 10)
+  });
+}
 
 // Vision: baca foto (base64) dan ekstrak kosakata dasar bahasa Jepang.
-// base64: string base64 murni (tanpa prefix data:), mimeType: 'image/jpeg' | 'image/png' ...
-// question: instruksi tambahan dari user (mis. caption foto).
-// Return: string jawaban atau null bila gagal.
+// MELEMPAR AIError bila gagal.
 async function describeImage({ base64, mimeType = 'image/jpeg', question = '' }) {
   const apiKey = (process.env.GROQ_API_KEY || '').trim();
-  if (!apiKey || !base64) return null;
+  if (!apiKey) throw new AIError('no_api_key', 'GROQ_API_KEY belum diisi');
+  if (!base64) throw new AIError('no_image', 'gambar kosong');
 
   const instruction = question && question.trim()
     ? `Permintaan murid: "${question.trim()}"\n\n`
@@ -95,48 +152,21 @@ async function describeImage({ base64, mimeType = 'image/jpeg', question = '' })
     `4. Jika tidak ada tulisan Jepang sama sekali, deskripsikan isi foto lalu beri 3 kosakata Jepang yang berkaitan dengan isi foto.\n` +
     `Seluruh jawaban dalam Bahasa Indonesia.`;
 
-  const controller = new AbortController();
-  const timeoutMs = parseInt(process.env.GROQ_TIMEOUT_MS || '40000', 10);
-  const timer = setTimeout(() => controller.abort(), timeoutMs);
-
-  try {
-    const res = await fetch(GROQ_URL, {
-      method: 'POST',
-      signal: controller.signal,
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        model: getVisionModel(),
-        messages: [
-          {
-            role: 'user',
-            content: [
-              { type: 'text', text: prompt },
-              { type: 'image_url', image_url: { url: `data:${mimeType};base64,${base64}` } }
-            ]
-          }
-        ],
-        temperature: 0.5,
-        max_tokens: 900
-      })
-    });
-
-    if (!res.ok) {
-      const body = await res.text().catch(() => '');
-      console.error(`[AI-VISION] Groq error ${res.status}: ${body.slice(0, 200)}`);
-      return null;
-    }
-    const data = await res.json();
-    const text = data && data.choices && data.choices[0] && data.choices[0].message
-      ? data.choices[0].message.content
-      : null;
-    return (text || '').trim() || null;
-  } catch (e) {
-    console.error('[AI-VISION] Groq request gagal:', e.name === 'AbortError' ? 'timeout' : e.message);
-    return null;
-  } finally {
-    clearTimeout(timer);
-  }
+  return groqChat({
+    model: getVisionModel(),
+    messages: [
+      {
+        role: 'user',
+        content: [
+          { type: 'text', text: prompt },
+          { type: 'image_url', image_url: { url: `data:${mimeType};base64,${base64}` } }
+        ]
+      }
+    ],
+    temperature: 0.5,
+    maxTokens: 900,
+    timeoutMs: parseInt(process.env.GROQ_TIMEOUT_MS || '40000', 10)
+  });
 }
+
+module.exports = { AIError, isAIEnabled, getModel, getVisionModel, humanizeAIError, getLastAIError, askGroq, describeImage };

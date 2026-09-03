@@ -1,6 +1,6 @@
 {
   "name": "wa-japan-bot",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Telegram bot for daily Japanese language lessons via Indonesian",
   "main": "index.js",
   "scripts": {
