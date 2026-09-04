@@ -6,7 +6,9 @@
 // bukan malah menjawab pakai template basi.
 
 const GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions';
-const DEFAULT_MODEL = 'qwen/qwen3.6-27b'; // teks+vision, terverifikasi aktif Sep 2026
+// Teks: gpt-oss-20b (cepat, jawaban langsung tanpa bocoran thinking).
+// Vision: qwen3.6-27b (multimodal). Keduanya terverifikasi aktif Sep 2026.
+const DEFAULT_MODEL = 'openai/gpt-oss-20b';
 const DEFAULT_VISION_MODEL = 'qwen/qwen3.6-27b';
 
 class AIError extends Error {
@@ -65,6 +67,50 @@ async function groqChat({ model, messages, temperature, maxTokens, timeoutMs }) 
   const apiKey = (process.env.GROQ_API_KEY || '').trim();
   if (!apiKey) throw new AIError('no_api_key', 'GROQ_API_KEY belum diisi');
 
+  // Coba hingga 2x: model thinking kadang hanya mengembalikan <think> tanpa jawaban.
+  // Ujian kedua ditegaskan agar langsung menjawab.
+  // Floor 800 token output: thinking memakan bujet, bujet kecil membuat jawaban terpotong.
+  const safeMaxTokens = Math.max(maxTokens, 800);
+  let lastError = null;
+  for (let attempt = 1; attempt <= 2; attempt++) {
+    const msgs = attempt === 1 ? messages : [
+      ...messages.slice(0, -1),
+      {
+        role: 'user',
+        content: messages[messages.length - 1].content +
+          '\n\n[PENTING: jawab LANGSUNG sekarang, tanpa tag <think>, tanpa proses berpikir.]'
+      }
+    ];
+    try {
+      return await groqChatOnce({ model, messages: msgs, temperature, maxTokens: safeMaxTokens, timeoutMs, apiKey });
+    } catch (e) {
+      lastError = e;
+      if (!(e instanceof AIError) || e.aiCode !== 'empty_response') throw e;
+      console.error(`[AI] respons kosong (percobaan ${attempt}), mengulang...`);
+    }
+  }
+  noteAIError(lastError.aiCode, lastError.message);
+  throw lastError;
+}
+
+// Qwen3 hybrid: akhiran /no_think mematikan mode berpikir (hemat token + tanpa bocoran <think>).
+// Bila model tidak mendukung, akhiran ini hanya teks biasa yang diabaikan.
+function noThink(messages) {
+  return messages.map((msg, idx) => {
+    if (idx !== messages.length - 1) return msg;
+    if (typeof msg.content === 'string') return { ...msg, content: msg.content + '\n/no_think' };
+    if (Array.isArray(msg.content)) {
+      return {
+        ...msg,
+        content: msg.content.map(p => p.type === 'text' ? { ...p, text: p.text + '\n/no_think' } : p)
+      };
+    }
+    return msg;
+  });
+}
+
+async function groqChatOnce({ model, messages, temperature, maxTokens, timeoutMs, apiKey }) {
+
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
 
@@ -76,7 +122,7 @@ async function groqChat({ model, messages, temperature, maxTokens, timeoutMs }) 
         'Authorization': `Bearer ${apiKey}`,
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ model, messages, temperature, max_tokens: maxTokens })
+      body: JSON.stringify({ model, messages: noThink(messages), temperature, max_tokens: maxTokens })
     });
 
     if (!res.ok) {
@@ -99,7 +145,8 @@ async function groqChat({ model, messages, temperature, maxTokens, timeoutMs }) 
     return text;
   } catch (e) {
     if (e instanceof AIError) {
-      noteAIError(e.aiCode, e.message);
+      // empty_response dicatat pemanggil (bisa retry dulu); lainnya catat langsung
+      if (e.aiCode !== 'empty_response') noteAIError(e.aiCode, e.message);
       throw e;
     }
     const code = e && e.name === 'AbortError' ? 'timeout' : 'network';
@@ -129,7 +176,7 @@ async function askGroq(question, lessonContext = '', opts = {}) {
     model: opts.model || getModel(),
     messages,
     temperature: opts.temperature !== undefined ? opts.temperature : 0.7,
-    maxTokens: opts.maxTokens || 1200,
+    maxTokens: opts.maxTokens || 1000,
     timeoutMs: parseInt(process.env.GROQ_TIMEOUT_MS || '25000', 10)
   });
 }

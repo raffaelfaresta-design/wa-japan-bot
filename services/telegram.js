@@ -124,13 +124,167 @@ function lookupKamus(query) {
   return null;
 }
 
-function formatKamusAnswer(entry, original) {
-  let text = `💡 KAMUS\n\n"${original}" dalam bahasa Jepang:\n\n${entry.jp}`;
+function formatKamusAnswer(entry, original, fuzzy = false) {
+  let text = fuzzy ? `🔍 Mungkin maksudmu "${(entry.id || [''])[0]}"?\n\n` : '';
+  text += `💡 KAMUS\n\n"${original}" dalam bahasa Jepang:\n\n${entry.jp}`;
   if (entry.romaji) text += ` (${entry.romaji})`;
   text += `\n= ${entry.arti}`;
   if (entry.note) text += `\n\n📌 ${entry.note}`;
+  if (entry.contoh) text += `\n\n💬 Contoh:\n${entry.contoh.jp} (${entry.contoh.romaji})\n= ${entry.contoh.arti}`;
   text += `\n\nMau latihan? Kirim /quiz lalu balas A/B/C/D. Tanya lain? /tanya saja.`;
   return truncate(text);
+}
+
+// ---- stemming ringan BI: bukunya->buku, makanku->makan ----
+function stemID(word) {
+  const out = [word];
+  for (const suf of ['nya', 'ku', 'mu', 'lah', 'kah', 'pun', 'tah']) {
+    if (word.endsWith(suf) && word.length > suf.length + 2) {
+      const stem = word.slice(0, -suf.length);
+      if (!out.includes(stem)) out.push(stem);
+    }
+  }
+  return out;
+}
+
+function findKamusEntry(word) {
+  const w = (word || '').toLowerCase();
+  if (!w) return null;
+  const kamus = loadKamus();
+  for (const cand of stemID(w)) {
+    for (const e of kamus) {
+      if ((e.id || []).some(a => a.toLowerCase() === cand)) return e;
+    }
+  }
+  return null;
+}
+
+function levenshtein(a, b) {
+  const m = a.length, n = b.length;
+  if (!m) return n;
+  if (!n) return m;
+  let prev = Array.from({ length: n + 1 }, (_, i) => i);
+  for (let i = 1; i <= m; i++) {
+    const cur = [i];
+    for (let j = 1; j <= n; j++) {
+      cur[j] = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+    }
+    prev = cur;
+  }
+  return prev[n];
+}
+
+// toleransi typo 1-2 huruf untuk 1 kata (kucingg -> kucing)
+function fuzzyKamus(key) {
+  const k = (key || '').toLowerCase().trim();
+  if (!k || /\s/.test(k) || k.length < 4) return null;
+  let best = null;
+  let bestDist = k.length >= 6 ? 2 : 1;
+  for (const e of loadKamus()) {
+    for (const a of (e.id || [])) {
+      const alias = a.toLowerCase();
+      if (/\s/.test(alias)) continue;
+      const d = levenshtein(k, alias);
+      if (d > 0 && d <= bestDist) { bestDist = d; best = e; }
+    }
+  }
+  return best ? { entry: best } : null;
+}
+
+// ---- deteksi niat terjemah: "X dalam bahasa jepang", "apa arti X", "terjemahkan X" ----
+function detectTranslateIntent(raw) {
+  const t = (raw || '').toLowerCase().replace(/[?!.。、！？「」"'—:;()]/g, ' ').replace(/\s+/g, ' ').trim();
+  if (!t) return null;
+  let m;
+  if ((m = t.match(/^(tolong\s+)?(terjemahkan|translate|artikan)\s+(.+)$/))) return { target: m[3] };
+  if ((m = t.match(/^apa\s+artinya\s+(.+)$/))) return { target: m[1] };
+  if ((m = t.match(/^apa\s+arti(nya)?\s+(.+)$/))) return { target: m[2] };
+  if ((m = t.match(/^(gimana|bagaimana)\s+(cara\s+)?(bilang|bilangnya|ngomong|ngomongnya)\s+(.+)$/))) return { target: m[4] };
+  if ((m = t.match(/^bahasa\s+jepangnya\s+(.+)$/))) return { target: m[1] };
+  if ((m = t.match(/^(.+?)\s+(dalam\s+)?bahasa\s+jepang(nya)?(\s+apa)?$/)) && !/^(apa|bagaimana|gimana)\b/.test(t)) return { target: m[1] };
+  if ((m = t.match(/^(.+?)\s+artinya(\s+apa)?$/)) && !/^(apa|itu|ini)\b/.test(t)) return { target: m[1] };
+  return null;
+}
+
+// kunci frasa multi-kata ("terima kasih") agar tidak pecah saat bedah per kata
+function lockPhrases(target) {
+  const aliases = [];
+  for (const e of loadKamus()) {
+    for (const a of (e.id || [])) {
+      if (a.includes(' ')) aliases.push(a.toLowerCase());
+    }
+  }
+  aliases.sort((x, y) => y.length - x.length);
+  let t = ' ' + target + ' ';
+  const locked = [];
+  aliases.forEach((a, i) => {
+    const token = `__p${i}__`;
+    const needle = ' ' + a + ' ';
+    if (t.includes(needle)) {
+      t = t.split(needle).join(` ${token} `);
+      locked.push([token, a]);
+    }
+  });
+  return t.trim().split(/\s+/).map(u => {
+    const f = locked.find(([tk]) => tk === u);
+    return f ? f[1] : u;
+  });
+}
+
+const COMPOSE_SKIP = new Set(['yang', 'itu', 'ini', 'tersebut', 'sih', 'dong', 'deh', 'kok', 'saja', 'aja']);
+
+// Jawaban LENGKAP untuk frasa multi-kata: bedah per kata + rakitan + contoh.
+// "makan dulu sana" -> 食べる + 先に + あそこ, bukan cuma "makan".
+function composePhraseAnswer(target, original) {
+  const clean = (target || '').toLowerCase().replace(/[?!.。、！？「」"'—:;()]/g, ' ').replace(/\s+/g, ' ').trim();
+  if (!clean) return null;
+  const units = lockPhrases(clean);
+  const known = [], unknown = [];
+  for (const u of units) {
+    if (COMPOSE_SKIP.has(u)) continue;
+    const e = findKamusEntry(u);
+    if (e) known.push({ word: u, entry: e });
+    else unknown.push(u);
+  }
+  const contentCount = units.filter(u => !COMPOSE_SKIP.has(u)).length;
+  if (known.length === 0) return null;
+  if (known.length < 2 && contentCount > 2) return null; // cakupan terlalu kecil
+
+  const assembled = known.map(k => k.entry.jp.split('/')[0].trim()).join(' ');
+  let text = `💡 TERJEMAH LENGKAP\n\n"${original}"\n\n🇯🇵 Perkiraan kasar: ${assembled}\n\n📝 Bedah per kata:\n`;
+  for (const k of known) {
+    text += `• ${k.word} → ${k.entry.jp}${k.entry.romaji ? ` (${k.entry.romaji})` : ''} = ${k.entry.arti}\n`;
+  }
+  const withContoh = known.filter(k => k.entry.contoh).slice(0, 3);
+  if (withContoh.length > 0) {
+    text += `\n💬 Contoh pakai:\n`;
+    for (const k of withContoh) {
+      text += `• ${k.entry.contoh.jp} (${k.entry.contoh.romaji}) = ${k.entry.contoh.arti}\n`;
+    }
+  }
+  if (unknown.length > 0) {
+    text += `\n❓ Belum di kamus lokal: ${unknown.map(u => `"${u}"`).join(', ')}.`;
+  }
+  text += `\n\n⚠️ Urutan kata di atas perkiraan kasar mengikut katamu. Untuk kalimat natural + grammar tepat, pastikan AI aktif (/ai) lalu pakai /terjemah.`;
+  return truncate(text);
+}
+
+function formatLessonAnswer(hits, q) {
+  const top = hits[0];
+  let text = `💡 JAWABAN\n\nBerdasarkan Hari ${top.day_number} - ${top.title}:\n\n`;
+  const snippet = top.content.length > 900 ? top.content.slice(0, 900) + '...' : top.content;
+  text += `${snippet}\n\n📖 Penjelasan quiz terkait:\n${top.explanation}`;
+  if (hits.length > 1) {
+    text += `\n\n🔗 Terkait juga: ${hits.slice(1).map(h => `Hari ${h.day_number} (${h.title})`).join(', ')}. Buka dengan /hari ${hits[1].day_number}.`;
+  }
+  text += `\n\nMau latihan? Kirim /quiz lalu balas A/B/C/D.`;
+  return truncate(text);
+}
+
+function notFoundAnswer(q) {
+  return `🤔 Hmm, saya belum menemukan jawaban pasti untuk: "${q}"\n\n` +
+    `Kemungkinan saya jalan dalam MODE LOKAL (tanpa AI). Cek dengan /ai — kalau AI mati, minta admin mengisi GROQ_API_KEY.\n\n` +
+    `Sementara itu coba kata lain, misalnya:\n• /tanya apa arti anakku?\n• /terjemah makan dulu sana\n• /tanya sapaan pagi\n\nAtau buka /belajar untuk materi hari ini.`;
 }
 
 // ---- deteksi jawaban quiz yang toleran ----
@@ -167,6 +321,11 @@ function searchLessons(query, limit = 3) {
   if (!lessons || lessons.length === 0) return [];
   const terms = tokenize(query);
   const raw = (query || '').toLowerCase();
+  if (terms.length === 0) {
+    // kueri 1 karakter (mis. し) -> cari langsung karakternya
+    const r = raw.replace(/[\s?!.。、！？「」"'—:;()]/g, '');
+    if (r) terms.push(r);
+  }
 
   // 1. cocok langsung karakter jepang / romaji di konten
   const scored = lessons.map((lesson) => {
@@ -215,27 +374,49 @@ function answerQuestionLocal(query) {
     return '🤖 Saya bot AI pengajar bahasa Jepang (berbasis 30 hari materi). Saya bisa:\n1. Menjawab pertanyaan kosakata & grammar\n2. Mengoreksi jawaban quiz kamu\n3. Mengirim kosakata baru setiap 1 jam\n\nCoba: /belajar atau /tanya apa itu partikel wa?';
   }
 
-  // 1. kamus kata sehari-hari (anakku, terima kasih, kucing, ...)
+  // 1. niat terjemah eksplisit
+  const intent = detectTranslateIntent(q);
+  if (intent) {
+    const singleWord = !/\s/.test(intent.target.trim());
+    if (singleWord) {
+      // satu kata -> format KAMUS (lengkap + contoh), bukan composer
+      const single = lookupKamus(intent.target);
+      if (single) return formatKamusAnswer(single, q);
+      const stemHit = findKamusEntry(intent.target);
+      if (stemHit) return formatKamusAnswer(stemHit, q);
+      const fz0 = fuzzyKamus(intent.target);
+      if (fz0) return formatKamusAnswer(fz0.entry, q, true);
+    } else {
+      // frasa -> jawaban LENGKAP via composer
+      const composed = composePhraseAnswer(intent.target, q);
+      if (composed) return composed;
+    }
+    const hitsT = searchLessons(intent.target, 3);
+    if (hitsT.length > 0) return formatLessonAnswer(hitsT, q);
+    return notFoundAnswer(q);
+  }
+
+  // 2. kamus langsung (kata/frasa pendek) + stemming + toleransi typo
   const kamusHit = lookupKamus(q);
   if (kamusHit) return formatKamusAnswer(kamusHit, q);
+  const bare = q.toLowerCase().replace(/[?!.。、！？「」"'—:;()]/g, '').trim();
+  if (bare && !/\s/.test(bare)) {
+    const stemHit = findKamusEntry(bare);
+    if (stemHit) return formatKamusAnswer(stemHit, q);
+  }
+  const kamusFuzzy = fuzzyKamus(q);
+  if (kamusFuzzy) return formatKamusAnswer(kamusFuzzy.entry, q, true);
 
+  // 3. frasa multi-kata tanpa kata kunci intent ("makan dulu sana?") -> composer juga
+  if (/\s/.test(q.replace(/[?!.。、！？「」"'—:;()]/g, ''))) {
+    const composed = composePhraseAnswer(q, q);
+    if (composed) return composed;
+  }
+
+  // 4. materi pelajaran
   const hits = searchLessons(q, 3);
-  if (hits.length === 0) {
-    return `🤔 Hmm, saya belum menemukan jawaban pasti untuk: "${q}"\n\n` +
-      `Kemungkinan saya jalan dalam MODE LOKAL (tanpa AI). Cek dengan /ai — kalau AI mati, minta admin mengisi GROQ_API_KEY.\n\n` +
-      `Sementara itu coba kata lain, misalnya:\n• /tanya apa arti anakku?\n• /tanya sapaan pagi\n• /tanya hiragana shi\n\nAtau buka /belajar untuk materi hari ini.`;
-  }
-
-  const top = hits[0];
-  let text = `💡 JAWABAN\n\nBerdasarkan Hari ${top.day_number} - ${top.title}:\n\n`;
-  // potong konten agar tidak terlalu panjang, ambil 900 karakter pertama yg relevan
-  const snippet = top.content.length > 900 ? top.content.slice(0, 900) + '...' : top.content;
-  text += `${snippet}\n\n📖 Penjelasan quiz terkait:\n${top.explanation}`;
-  if (hits.length > 1) {
-    text += `\n\n🔗 Terkait juga: ${hits.slice(1).map(h => `Hari ${h.day_number} (${h.title})`).join(', ')}. Buka dengan /belajar.`;
-  }
-  text += `\n\nMau latihan? Kirim /quiz lalu balas A/B/C/D.`;
-  return truncate(text);
+  if (hits.length === 0) return notFoundAnswer(q);
+  return formatLessonAnswer(hits, q);
 }
 
 // Jawab pertanyaan apa pun: AI dulu (dengan memory), fallback lokal transparan.
@@ -302,7 +483,7 @@ async function handleQuizAnswer(ctx, rawLetter) {
       const aiMsg = await askGroq(
         'Koreksi jawaban quiz murid di atas. Sebutkan benar/salah dengan jelas, jelaskan singkat kenapa, beri semangat 1 kalimat, dan tutup dengan skornya. Maksimal 5 kalimat, Bahasa Indonesia.',
         quizCtx,
-        { maxTokens: 300, temperature: 0.8 }
+        { maxTokens: 500, temperature: 0.8 }
       );
       await ctx.reply(truncate((isCorrect ? '✅ ' : '❌ ') + aiMsg));
       return;
@@ -312,6 +493,40 @@ async function handleQuizAnswer(ctx, rawLetter) {
     }
   }
   await ctx.reply(truncate(local));
+}
+
+const JAPANESE_RE = /[぀-ヿㇰ-ㇿ々〆〤一-鿿豈-﫿]/;
+
+// Jelaskan tulisan Jepang yang diketik user (auto-deteksi, tanpa perlu /tanya)
+async function explainJapanese(text, chatId = null) {
+  const t = (text || '').trim();
+  if (isAIEnabled()) {
+    try {
+      const ans = await askGroq(
+        `Jelaskan tulisan Jepang berikut untuk pemula Indonesia: (1) bacaan romaji, (2) arti per kata/karakter, (3) satu contoh kalimat + artinya. Teks: """${t}"""`,
+        '',
+        { history: chatId ? getHistory(chatId) : [], maxTokens: 700 }
+      );
+      if (chatId) pushMemory(chatId, t, ans);
+      return truncate('🇯🇵 ' + ans);
+    } catch (e) {
+      const hits = searchLessons(t, 2);
+      const local = hits.length > 0
+        ? `🔍 Tulisan ini ada di materi:\n\n${formatLessonAnswer(hits, t)}`
+        : `🔍 "${truncate(t, 120)}" belum ada di materi lokal.`;
+      return `${local}\n\n⚠️ AI gagal (${humanizeAIError(e)}). Cek /ai.`;
+    }
+  }
+  const hits = searchLessons(t, 2);
+  if (hits.length > 0) return `🔍 Tulisan ini ada di materi:\n\n${formatLessonAnswer(hits, t)}`;
+  return `🔍 "${truncate(t, 120)}" belum ada di materi lokal. Aktifkan AI (/ai) agar saya bisa menjelaskan tulisan Jepang apa pun.`;
+}
+
+function levelFor(correct) {
+  if (correct >= 30) return '🎓 Sensei Mini';
+  if (correct >= 15) return '💪 Mantap';
+  if (correct >= 5) return '📖 Rajin';
+  return '🌱 Pemula';
 }
 
 // ---- ekstrak kosakata untuk broadcast per jam ----
@@ -436,11 +651,14 @@ function startTelegram(botToken) {
       '🎌 Selamat datang di AI Pengajar Bahasa Jepang!\n\n' +
       aiLine + '\n\n' +
       'Saya bisa:\n' +
-      '1. 📖 /belajar - pelajaran hari ini\n' +
+      '1. 📖 /belajar atau /hari <1-30> - pelajaran\n' +
       '2. 📝 /quiz - quiz hari ini (balas A/B/C/D, saya koreksi otomatis)\n' +
       '3. ❓ /tanya <pertanyaan> - tanya kosakata / grammar / apa saja\n' +
-      '4. 📸 Kirim FOTO tulisan Jepang - saya bacakan + ekstrak kosakatanya\n' +
-      '5. 📚 Broadcast kosakata otomatis tiap 1 jam (teks + foto)\n\n' +
+      '4. 🌐 /terjemah <teks> - terjemah frasa/kalimat lengkap + bedah kata\n' +
+      '5. 📖 /kata <kata> - bedah satu kata mendalam\n' +
+      '6. 📸 Kirim FOTO tulisan Jepang - saya bacakan + ekstrak kosakatanya\n' +
+      '7. ✍️ Ketik tulisan Jepang langsung - otomatis saya jelaskan\n' +
+      '8. 📚 Broadcast kosakata otomatis tiap 1 jam (teks + foto)\n\n' +
       'Contoh:\n/tanya apa arti konnichiwa?\n/quiz'
     );
   });
@@ -488,10 +706,12 @@ function startTelegram(botToken) {
     const progress = db.getUserProgress(chatId, dayNumber);
     const stats = db.getUserQuizStats(chatId);
     const totalLessons = db.getLessons().length;
+    const accuracy = stats.answered > 0 ? Math.round((stats.correct / stats.answered) * 100) : '-';
     await ctx.reply(
       `📊 Progress Belajar Anda\n\nHari ini: Hari ke-${dayNumber}\n` +
       `Status hari ini: ${progress ? progress.status : 'belum mulai'}\n` +
-      `Quiz: ${stats.correct} benar / ${stats.answered} dijawab\n` +
+      `Quiz: ${stats.correct} benar / ${stats.answered} dijawab (akurasi ${accuracy}%)\n` +
+      `Level: ${levelFor(stats.correct)}\n` +
       `Total pelajaran: ${totalLessons}\n\nTerus belajar! 🇯🇵`
     );
   });
@@ -522,6 +742,88 @@ function startTelegram(botToken) {
     await ctx.reply('✅ Mode direset. Kirim /help untuk daftar perintah.');
   });
 
+  // /terjemah <teks> : terjemahan lengkap ID<->JP + bedah kata + grammar
+  bot.command('terjemah', async (ctx) => {
+    ensureSubscriber(ctx);
+    const chatId = ctx.chat.id.toString();
+    const arg = (ctx.message.text || '').replace(/^\/terjemah(@\w+)?\s*/, '').trim();
+    if (!arg) {
+      await ctx.reply('🌐 Cara pakai: /terjemah <teks>\nContoh:\n/terjemah makan dulu sana\n/terjemah selamat pagi\n/terjemah おはようございます');
+      return;
+    }
+    if (isAIEnabled()) {
+      try {
+        const ans = await askGroq(
+          `Terjemahkan teks berikut (otomatis deteksi arah Indonesia-Jepang atau Jepang-Indonesia). Format: (1) HASIL terjemahan + romaji bila ada Jepang, (2) bedah per kata, (3) catatan grammar/pola 1-2 kalimat, (4) tingkat kesopanan. Bahasa Indonesia. Teks: """${arg}"""`,
+          '',
+          { history: getHistory(chatId), maxTokens: 800 }
+        );
+        pushMemory(chatId, arg, ans);
+        await ctx.reply(truncate('🌐 ' + ans));
+        return;
+      } catch (e) {
+        await ctx.reply(`⚠️ AI gagal (${humanizeAIError(e)}), saya coba cara lokal dulu ya.`);
+      }
+    }
+    const composed = composePhraseAnswer(arg, arg);
+    if (composed) {
+      await ctx.reply(composed);
+      return;
+    }
+    await ctx.reply(await answerQuestion(arg, chatId));
+  });
+
+  // /kata <kata> : deep-dive satu kata/frasa
+  bot.command('kata', async (ctx) => {
+    ensureSubscriber(ctx);
+    const chatId = ctx.chat.id.toString();
+    const arg = (ctx.message.text || '').replace(/^\/kata(@\w+)?\s*/, '').trim();
+    if (!arg) {
+      await ctx.reply('📖 Cara pakai: /kata <kata>\nContoh:\n/kata taberu\n/kata terima kasih');
+      return;
+    }
+    if (isAIEnabled()) {
+      try {
+        const ans = await askGroq(
+          `Deep-dive kata/frasa "${arg}" untuk pemula Indonesia: arti, bacaan romaji, 2 contoh kalimat + artinya, 2 kata mirip/terkait, 1 tips mengingat. Bahasa Indonesia, ringkas.`,
+          buildLessonContext(searchLessons(arg, 1)),
+          { history: getHistory(chatId), maxTokens: 700 }
+        );
+        pushMemory(chatId, arg, ans);
+        await ctx.reply(truncate('📖 ' + ans));
+        return;
+      } catch (e) { /* fallback lokal di bawah */ }
+    }
+    const hit = lookupKamus(arg) || fuzzyKamus(arg);
+    let out = hit ? formatKamusAnswer(hit.entry || hit, arg, Boolean(hit.entry)) : null;
+    if (!out) {
+      const hits = searchLessons(arg, 2);
+      out = hits.length > 0 ? formatLessonAnswer(hits, arg) : notFoundAnswer(arg);
+    } else {
+      const hits = searchLessons(arg, 1);
+      if (hits.length > 0) out += `\n\n🔗 Juga dibahas di Hari ${hits[0].day_number} (${hits[0].title}). Buka dengan /hari ${hits[0].day_number}.`;
+    }
+    await ctx.reply(out);
+  });
+
+  // /hari <1-30> : buka pelajaran hari tertentu
+  bot.command('hari', async (ctx) => {
+    ensureSubscriber(ctx);
+    const arg = (ctx.message.text || '').replace(/^\/hari(@\w+)?\s*/, '').trim();
+    const n = parseInt(arg, 10);
+    if (!(n >= 1 && n <= 30)) {
+      await ctx.reply('📅 Cara pakai: /hari 1 sampai /hari 30\nContoh: /hari 5');
+      return;
+    }
+    const lesson = db.getLessonByDay(n);
+    if (lesson) {
+      db.setUserState(ctx.chat.id.toString(), { mode: 'quiz', lastQuizDay: n });
+      await ctx.reply(buildLessonMessage(lesson, safeOptions(lesson)));
+    } else {
+      await ctx.reply('📭 Pelajaran hari itu belum tersedia.');
+    }
+  });
+
   // diagnostik: pastikan AI aktif & bot versi terbaru
   bot.command('ai', async (ctx) => {
     const lessons = db.getLessons().length;
@@ -548,9 +850,12 @@ function startTelegram(botToken) {
     ctx.reply(
       '📖 Bantuan\n\n' +
       '/belajar - pelajaran hari ini\n' +
+      '/hari <1-30> - pelajaran hari tertentu (cth: /hari 5)\n' +
       '/quiz - quiz hari ini (balas A/B/C/D)\n' +
       '/jawaban - kunci jawaban hari ini\n' +
       '/tanya <pertanyaan> - tanya AI pengajar\n' +
+      '/terjemah <teks> - terjemah frasa/kalimat lengkap\n' +
+      '/kata <kata> - bedah satu kata mendalam\n' +
       '/ai - cek status AI & versi bot\n' +
       '/foto - cara kirim foto tulisan Jepang untuk dibacakan\n' +
       '/progres - progress & skor quiz\n' +
@@ -560,7 +865,7 @@ function startTelegram(botToken) {
     );
   });
 
-  // handler teks: 1) jawaban quiz, 2) mode tanya, 3) pertanyaan/AI, 4) hint
+  // handler teks: 1) jawaban quiz, 1b) tulisan Jepang, 2) mode tanya, 3) pertanyaan/AI, 4) hint
   bot.on('text', async (ctx) => {
     ensureSubscriber(ctx);
     const text = (ctx.message.text || '').trim();
@@ -579,6 +884,12 @@ function startTelegram(botToken) {
     }
     if (letter) {
       await handleQuizAnswer(ctx, letter);
+      return;
+    }
+
+    // 1b. ketik tulisan Jepang langsung -> jelaskan otomatis
+    if (JAPANESE_RE.test(text)) {
+      await ctx.reply(await explainJapanese(text, chatId));
       return;
     }
 
@@ -675,4 +986,4 @@ function getBot() {
   return bot;
 }
 
-module.exports = { startTelegram, getBot, answerQuestion, answerQuestionLocal, lookupKamus, extractQuizLetter, handleQuizAnswer, searchLessons, extractVocabularies, getCurrentDayNumber };
+module.exports = { startTelegram, getBot, answerQuestion, answerQuestionLocal, lookupKamus, fuzzyKamus, detectTranslateIntent, composePhraseAnswer, explainJapanese, levelFor, extractQuizLetter, handleQuizAnswer, searchLessons, extractVocabularies, getCurrentDayNumber };

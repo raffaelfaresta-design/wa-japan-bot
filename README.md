@@ -5,6 +5,9 @@ Bot Telegram yang mengirim pelajaran bahasa Jepang secara otomatis setiap hari m
 ## Fitur
 
 - 📚 30 hari pelajaran bahasa Jepang (hiragana, katakana, grammar, kosakata) — otomatis dimuat saat bot start, tanpa setup manual
+- 📖 Kamus lokal 90+ kata + contoh kalimat (jaring pengaman saat AI mati)
+- 🌐 Terjemahan frasa lengkap per kata (/terjemah, /kata)
+- ✍️ Auto-jelaskan tulisan Jepang yang diketik langsung
 - 🤖 AI pengajar via Groq (jawab pertanyaan apa pun dalam Bahasa Indonesia)
 - 📸 Baca foto tulisan Jepang via Groq vision (`qwen/qwen3.6-27b`) + ekstrak kosakata dasar
 - 📚 Broadcast kosakata dasar otomatis tiap 1 jam (selang-seling teks & foto)
@@ -32,7 +35,8 @@ TELEGRAM_BOT_TOKEN=your_telegram_bot_token
 
 # Opsional tapi disarankan: agar bot bisa jawab pertanyaan APAPUN
 GROQ_API_KEY=your_groq_api_key
-GROQ_MODEL=qwen/qwen3.6-27b
+GROQ_API_KEY=your_groq_api_key
+GROQ_MODEL=openai/gpt-oss-20b
 GROQ_VISION_MODEL=qwen/qwen3.6-27b
 
 BROADCAST_INTERVAL_MINUTES=60
@@ -79,7 +83,7 @@ git push -u origin main
 5. Tambahkan Environment Variables:
    - `TELEGRAM_BOT_TOKEN` - token bot Telegram
    - `GROQ_API_KEY` - API key Groq (agar bisa jawab apa pun)
-   - `GROQ_MODEL` - opsional, default `qwen/qwen3.6-27b` (teks+vision)
+   - `GROQ_MODEL` - opsional, default `openai/gpt-oss-20b` (teks)
    - `BROADCAST_INTERVAL_MINUTES` - opsional, default `60`
 6. Klik **Create Web Service**
 
@@ -110,9 +114,12 @@ wa-japan-bot/
 |----------|--------|
 | `/start` | Mulai & info umum |
 | `/belajar` | Lihat pelajaran hari ini |
+| `/hari <1-30>` | Pelajaran hari tertentu |
 | `/quiz` | Lihat quiz hari ini (balas A/B/C/D untuk dikoreksi) |
 | `/jawaban` | Lihat jawaban quiz |
 | `/tanya <pertanyaan>` | Tanya AI pengajar apa saja |
+| `/terjemah <teks>` | Terjemah frasa/kalimat lengkap + bedah kata |
+| `/kata <kata>` | Bedah satu kata mendalam + contoh |
 | `/ai` | Cek status AI & versi bot |
 | `/foto` | Cara kirim foto tulisan Jepang untuk dibacakan (atau langsung kirim foto!) |
 | `/selesai` | Keluar dari mode tanya |
